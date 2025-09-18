@@ -6,7 +6,7 @@ import java.util.Collection;
 /**
  * Calculates all legal moves for a King piece.
  */
-public class BishopMovesCalculator implements PieceMovesCalculator {
+public class KnightMovesCalculator implements PieceMovesCalculator {
     @Override
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
@@ -15,7 +15,7 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
         ArrayList<ChessMove> moves = new ArrayList<>();
         int currentRow = position.getRow();
         int currentCol = position.getColumn();
-        ChessPiece bishopEl = board.getPiece(position);
+        ChessPiece knightEl = board.getPiece(position);
         for (int dir = 0; dir < dx.length; dir++) {
             for (int dis = 1; dis <= 7; dis++) {
                 int newRow = currentRow + dx[dir]*dis;
@@ -26,7 +26,7 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
                 if (targetPiece == null) {
                     moves.add(new ChessMove(position, movementOption, null));
                     System.out.println(movementOption + " is a valid move");
-                } else if(targetPiece.getTeamColor() != bishopEl.getTeamColor()){
+                } else if(targetPiece.getTeamColor() != knightEl.getTeamColor()){
                     // TODO: Add Removing Functionality
                     moves.add(new ChessMove(position, movementOption, null));
                     System.out.println(movementOption + " is a valid capture move");
