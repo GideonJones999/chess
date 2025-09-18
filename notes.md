@@ -28,4 +28,4 @@ Per team:
 | | | | | | | | |
 | | | | | | | | |
 |P|P|P|P|P|P|P|P|
-|R|N|B|Q|K|B|N|R|
+|R|N|B|K|Q|B|N|R|

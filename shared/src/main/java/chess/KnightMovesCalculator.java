@@ -10,17 +10,16 @@ public class KnightMovesCalculator implements PieceMovesCalculator {
     @Override
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
-        int[] dx = {-1,-1,1,1};
-        int[] dy = {-1,1,-1,1};
+        int[] dx = {2,2,-2,-2,1,1,-1,-1};
+        int[] dy = {1,-1,1,-1,2,-2,2,-2};
         ArrayList<ChessMove> moves = new ArrayList<>();
         int currentRow = position.getRow();
         int currentCol = position.getColumn();
         ChessPiece knightEl = board.getPiece(position);
-        for (int dir = 0; dir < dx.length; dir++) {
-            for (int dis = 1; dis <= 7; dis++) {
-                int newRow = currentRow + dx[dir]*dis;
-                int newCol = currentCol + dy[dir]*dis;
-                if (newRow < 1 || newRow > 8 || newCol < 1 || newCol > 8) {break;}
+        for (int i=0; i < dx.length; i++) {
+                int newRow = currentRow + dx[i];
+                int newCol = currentCol + dy[i];
+                if (newRow < 1 || newRow > 8 || newCol < 1 || newCol > 8) {continue;}
                 ChessPosition movementOption = new ChessPosition(newRow, newCol);
                 ChessPiece targetPiece = board.getPiece(movementOption);
                 if (targetPiece == null) {
@@ -30,11 +29,8 @@ public class KnightMovesCalculator implements PieceMovesCalculator {
                     // TODO: Add Removing Functionality
                     moves.add(new ChessMove(position, movementOption, null));
                     System.out.println(movementOption + " is a valid capture move");
-                    break;
                 } else {
                     System.out.println(movementOption + " is an invalid move");
-                    break;
-                }
             }
         }
 
