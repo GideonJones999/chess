@@ -14,6 +14,17 @@ public class ChessGame {
     private ChessBoard board;
     private TeamColor currentTurn;
 
+//    Castling Tracking
+    private boolean whiteKingMoved = false;
+    private boolean blackKingMoved = false;
+    private boolean whiteKingsideRookMoved = false;
+    private boolean whiteQueensideRookMoved = false;
+    private boolean blackKingsideRookMoved = false;
+    private boolean blackQueensideRookMoved = false;
+
+//    En Passant Tracking
+    private ChessMove lastMove = null;
+
     public ChessGame() {
         this.board = new ChessBoard();
         board.resetBoard();
@@ -91,19 +102,45 @@ public class ChessGame {
         if (legalMoves == null || !legalMoves.contains(move)) {
             throw new  InvalidMoveException("Invalid Move");
         }
+
+        updateCastlingFlags(move, piece);
+
 //        Todo: handle castling
 //        Todo: handle en passant
-
-        System.out.println("Legal Moves contains " + move.getEndPosition() + ": " + legalMoves.contains(move));
 
         board.addPiece(move.getStartPosition(), null);
         board.addPiece(move.getEndPosition(), piece);
 
         if (move.getPromotionPiece() != null) {
-            board.addPiece(move.getEndPosition(), new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
+            board.addPiece(move.getEndPosition(),
+                    new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
         }
+        lastMove = move;
         setTeamTurn((getTeamTurn() == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE);
-        System.out.println(board);
+//        System.out.println(board);
+    }
+
+    private void updateCastlingFlags(ChessMove move, ChessPiece piece) {
+//        Track King Moves
+//        Track Rook Moves
+    }
+
+    public ChessMove getLastMove() {
+        return lastMove;
+    }
+
+    public boolean canCastleKingside(TeamColor color){
+        if (color == TeamColor.WHITE) {
+            return !whiteKingMoved && !whiteKingsideRookMoved;
+        }
+        return !blackKingMoved && !blackKingsideRookMoved;
+    }
+
+    public boolean canCastleQueenside(TeamColor color){
+        if (color == TeamColor.WHITE) {
+            return !whiteKingMoved && !whiteQueensideRookMoved;
+        }
+        return !blackKingMoved && !blackQueensideRookMoved;
     }
 
     /**
@@ -115,8 +152,7 @@ public class ChessGame {
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPos = findKing(teamColor);
         if (kingPos == null) {
-            return false;
-//            uhhh... this shouldn't happen :D
+            return false; // uhhh... this shouldn't happen :D
         }
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
@@ -126,8 +162,7 @@ public class ChessGame {
                     Collection<ChessMove> moves = piece.pieceMoves(board, position);
                     for (ChessMove move : moves) {
                         if(move.getEndPosition().equals(kingPos)) {
-                            return true;
-//                            the king is currently in check :D
+                            return true; // the king is currently in check :D
                         }
                     }
                 }
