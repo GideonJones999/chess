@@ -24,14 +24,12 @@ public class KnightMovesCalculator implements PieceMovesCalculator {
                 ChessPiece targetPiece = board.getPiece(movementOption);
                 if (targetPiece == null) {
                     moves.add(new ChessMove(position, movementOption, null));
-                    System.out.println(movementOption + " is a valid move");
+//                    System.out.println(movementOption + " is a valid move");
                 } else if(targetPiece.getTeamColor() != knightEl.getTeamColor()){
                     // TODO: Add Removing Functionality
                     moves.add(new ChessMove(position, movementOption, null));
-                    System.out.println(movementOption + " is a valid capture move");
-                } else {
-                    System.out.println(movementOption + " is an invalid move");
-            }
+//                    System.out.println(movementOption + " is a valid capture move");
+                }
         }
 
         return moves;

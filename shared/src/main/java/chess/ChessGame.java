@@ -80,6 +80,9 @@ public class ChessGame {
             allMoves.addAll(getCastlingMoves(startPosition, piece.getTeamColor()));
         }
 //      Todo: Add en passant moves for Pawns
+        if (piece.getPieceType() ==  ChessPiece.PieceType.PAWN) {
+            allMoves.addAll(getEnPassantMoves(startPosition, piece.getTeamColor()));
+        }
 
         return allMoves;
     }
@@ -116,11 +119,17 @@ public class ChessGame {
                 executeCastle(move);
                 lastMove = move;
                 setTeamTurn((getTeamTurn() == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE);
-                System.out.println(board);
+//                System.out.println(board);
                 return;
             }
         }
 //        Todo: handle en passant
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && isEnPassant(move)) {
+            executeEnPassant(move);
+            lastMove = move;
+            setTeamTurn((getTeamTurn() == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE);
+            return;
+        }
 
         board.addPiece(move.getStartPosition(), null);
         board.addPiece(move.getEndPosition(), piece);
@@ -268,6 +277,105 @@ public class ChessGame {
             board.addPiece(rookEnd, rook);
             board.addPiece(rookStart, null);
         }
+    }
+
+    private Collection<ChessMove> getEnPassantMoves(ChessPosition pawnPos, TeamColor color) {
+        Collection<ChessMove> enPassantMoves = new ArrayList<>();
+
+        if (lastMove == null) {
+            return enPassantMoves;
+        }
+
+        ChessPiece lastMovedPiece = board.getPiece(lastMove.getEndPosition());
+
+        // Check if last move was a pawn moving 2 squares
+        if (lastMovedPiece == null || lastMovedPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return enPassantMoves;
+        }
+
+        int startRow = lastMove.getStartPosition().getRow();
+        int endRow = lastMove.getEndPosition().getRow();
+
+        // Check if it moved 2 squares
+        if (Math.abs(endRow - startRow) != 2) {
+            return enPassantMoves;
+        }
+
+        // Check if the enemy pawn is now beside our pawn
+        int pawnRow = pawnPos.getRow();
+        int pawnCol = pawnPos.getColumn();
+        int enemyPawnCol = lastMove.getEndPosition().getColumn();
+
+        // Must be on same row and adjacent columns
+        if (pawnRow == endRow && Math.abs(pawnCol - enemyPawnCol) == 1) {
+            // En passant is possible!
+            int captureRow = (color == TeamColor.WHITE) ? pawnRow + 1 : pawnRow - 1;
+            ChessPosition capturePos = new ChessPosition(captureRow, enemyPawnCol);
+            ChessMove enPassantMove = new ChessMove(pawnPos, capturePos, null);
+
+            // Make sure this doesn't leave king in check
+            if (!moveLeavesKingInCheckEnPassant(enPassantMove, color)) {
+                enPassantMoves.add(enPassantMove);
+            }
+        }
+
+        return enPassantMoves;
+    }
+
+    private boolean moveLeavesKingInCheckEnPassant(ChessMove move, TeamColor color) {
+        // For en passant, we need to remove the captured pawn from beside us, not at destination
+        ChessPiece movingPawn = board.getPiece(move.getStartPosition());
+        ChessPiece capturedPiece = board.getPiece(move.getEndPosition());
+
+        // The captured pawn is beside us, not at the destination
+        int capturedPawnRow = move.getStartPosition().getRow();
+        int capturedPawnCol = move.getEndPosition().getColumn();
+        ChessPosition capturedPawnPos = new ChessPosition(capturedPawnRow, capturedPawnCol);
+        ChessPiece capturedPawn = board.getPiece(capturedPawnPos);
+
+        // Simulate the en passant move
+        board.addPiece(move.getEndPosition(), movingPawn);
+        board.addPiece(move.getStartPosition(), null);
+        board.addPiece(capturedPawnPos, null); // Remove the captured pawn
+
+        boolean inCheck = isInCheck(color);
+
+        // Undo the move
+        board.addPiece(move.getStartPosition(), movingPawn);
+        board.addPiece(move.getEndPosition(), capturedPiece);
+        board.addPiece(capturedPawnPos, capturedPawn);
+
+        return inCheck;
+    }
+
+    private void executeEnPassant(ChessMove move) {
+        ChessPiece pawn = board.getPiece(move.getStartPosition());
+
+        // Move the pawn to the capture square
+        board.addPiece(move.getEndPosition(), pawn);
+        board.addPiece(move.getStartPosition(), null);
+
+        // Remove the captured pawn (which is beside the starting position, not at destination)
+        int capturedPawnRow = move.getStartPosition().getRow();
+        int capturedPawnCol = move.getEndPosition().getColumn();
+        board.addPiece(new ChessPosition(capturedPawnRow, capturedPawnCol), null);
+    }
+
+    private boolean isEnPassant(ChessMove move) {
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+
+        // Must be a pawn
+        if (piece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return false;
+        }
+
+        // Must be moving diagonally
+        if (move.getStartPosition().getColumn() == move.getEndPosition().getColumn()) {
+            return false;
+        }
+
+        // Destination square must be empty (that's what makes it en passant)
+        return board.getPiece(move.getEndPosition()) == null;
     }
 
         /**

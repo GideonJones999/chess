@@ -70,12 +70,6 @@ public class ChessBoard {
         addPiece(new ChessPosition(8,6), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP));
         addPiece(new ChessPosition(8,7), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT));
         addPiece(new ChessPosition(8,8), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK));
-
-        printBoard();
-    }
-
-    public void printBoard() {
-        System.out.print(this.toString());
     }
 
     private char getPieceSymbol(ChessPiece piece) {

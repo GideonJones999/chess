@@ -23,12 +23,12 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
         ChessPosition normalForwardPosition = new ChessPosition(currentRow+direction, currentCol);
         if (board.getPiece(normalForwardPosition) == null) {
             moves.add(new ChessMove(position, normalForwardPosition, null));
-            System.out.println(normalForwardPosition + " is a valid move");
+//            System.out.println(normalForwardPosition + " is a valid move");
             if (currentRow == startRow) {
                 ChessPosition startAdvancePosition = new ChessPosition(currentRow + 2 * direction, currentCol);
                 if (board.getPiece(startAdvancePosition) == null) {
                     moves.add(new ChessMove(position, startAdvancePosition, null));
-                    System.out.println(startAdvancePosition + " is a valid move, on starting row");
+//                    System.out.println(startAdvancePosition + " is a valid move, on starting row");
                 }
             }
         }
@@ -41,7 +41,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 ChessPiece target = board.getPiece(attackDiagonal);
                 if (target != null && target.getTeamColor() != pawnElTeamColor) {
                     moves.add(new ChessMove(position, attackDiagonal, null));
-                    System.out.println(attackDiagonal + " is a valid capture move");
+//                    System.out.println(attackDiagonal + " is a valid capture move");
                 }
             }
         }
