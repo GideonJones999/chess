@@ -114,6 +114,7 @@ public class ChessGame {
             int colDiff = Math.abs(move.getEndPosition().getColumn() - move.getStartPosition().getColumn());
             if (colDiff == 2) {
                 executeCastle(move);
+                lastMove = move;
                 setTeamTurn((getTeamTurn() == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE);
                 System.out.println(board);
                 return;
@@ -158,6 +159,25 @@ public class ChessGame {
                 }
             }
         }
+
+        // Track if a rook gets captured at its starting position
+        ChessPiece capturedPiece = board.getPiece(move.getEndPosition());
+        if (capturedPiece != null && capturedPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
+            ChessPosition endPos = move.getEndPosition();
+            if (capturedPiece.getTeamColor() == TeamColor.WHITE) {
+                if (endPos.getRow() == 1 && endPos.getColumn() == 8) {
+                    whiteKingsideRookMoved = true;
+                } else if (endPos.getRow() == 1 && endPos.getColumn() == 1) {
+                    whiteQueensideRookMoved = true;
+                }
+            } else {
+                if (endPos.getRow() == 8 && endPos.getColumn() == 8) {
+                    blackKingsideRookMoved = true;
+                } else if (endPos.getRow() == 8 && endPos.getColumn() == 1) {
+                    blackQueensideRookMoved = true;
+                }
+            }
+        }
     }
 
     public ChessMove getLastMove() {
@@ -186,7 +206,7 @@ public class ChessGame {
         int minCol = Math.min(startCol, endCol);
         int maxCol = Math.max(startCol, endCol);
 
-        for (int col = minCol +1; col <= maxCol; col++) {
+        for (int col = minCol +1; col < maxCol; col++) {
             if (board.getPiece(new ChessPosition(row, col)) != null) {
                 return false;
             }
