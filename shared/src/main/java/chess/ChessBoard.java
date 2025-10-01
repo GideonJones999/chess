@@ -75,18 +75,7 @@ public class ChessBoard {
     }
 
     public void printBoard() {
-        for (int row = 8; row >= 1; row--) {
-            for (int col = 1; col <= 8; col++) {
-                ChessPiece piece = getPiece(new ChessPosition(row, col));
-                if (piece == null) {
-                    System.out.print(". ");
-                } else {
-                    char symbol = getPieceSymbol(piece);
-                    System.out.print(symbol + " ");
-                }
-            }
-            System.out.println();
-        }
+        System.out.print(this.toString());
     }
 
     private char getPieceSymbol(ChessPiece piece) {
@@ -113,5 +102,22 @@ public class ChessBoard {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(squares);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int row = 8; row >= 1; row--) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece piece = getPiece(new ChessPosition(row, col));
+                if (piece == null) {
+                    sb.append(". ");
+                } else {
+                    sb.append(getPieceSymbol(piece)).append(" ");
+                }
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 }
