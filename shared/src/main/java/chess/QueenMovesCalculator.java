@@ -27,7 +27,6 @@ public class QueenMovesCalculator implements PieceMovesCalculator {
                     moves.add(new ChessMove(position, movementOption, null));
 //                    System.out.println(movementOption + " is a valid move");
                 } else if(targetPiece.getTeamColor() != queenEl.getTeamColor()){
-                    // TODO: Add Removing Functionality
                     moves.add(new ChessMove(position, movementOption, null));
 //                    System.out.println(movementOption + " is a valid capture move");
                     break;

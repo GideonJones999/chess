@@ -75,14 +75,13 @@ public class ChessGame {
             }
         }
 
-//      Todo: Add Castling Moves for Kings
         if (piece.getPieceType() ==  ChessPiece.PieceType.KING) {
             int expectedRow = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : 8;
             if (startPosition.getRow() == expectedRow) {
                 allMoves.addAll(getCastlingMoves(startPosition, piece.getTeamColor()));
             }
         }
-//      Todo: Add en passant moves for Pawns
+
         if (piece.getPieceType() ==  ChessPiece.PieceType.PAWN) {
             allMoves.addAll(getEnPassantMoves(startPosition, piece.getTeamColor()));
         }
@@ -114,7 +113,6 @@ public class ChessGame {
 
         updateCastlingFlags(move, piece);
 
-//        Todo: handle castling
         if (piece.getPieceType() == ChessPiece.PieceType.KING) {
             // Check if this is a castling move (king moves 2 squares)
             int colDiff = Math.abs(move.getEndPosition().getColumn() - move.getStartPosition().getColumn());
@@ -122,11 +120,9 @@ public class ChessGame {
                 executeCastle(move);
                 lastMove = move;
                 setTeamTurn((getTeamTurn() == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE);
-//                System.out.println(board);
                 return;
             }
         }
-//        Todo: handle en passant
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN && isEnPassant(move)) {
             executeEnPassant(move);
             lastMove = move;
@@ -235,17 +231,22 @@ public class ChessGame {
             ChessPosition kingEndPos = new ChessPosition(row, 7);
 
             if(isPathClear(kingPos, rookPos)) {
-                if (!isInCheck(color) && !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color) && !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,6), null), color)) {
+                if (!isInCheck(color) &&
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color) &&
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,6), null), color)) {
                     castlingMoves.add(new ChessMove(kingPos, kingEndPos, null));
                 }
             }
         }
+
         if(canCastleQueenside(color)) {
             ChessPosition rookPos = new ChessPosition(row, 1);
             ChessPosition kingEndPos = new ChessPosition(row, 3);
 
             if(isPathClear(kingPos, rookPos)) {
-                if (!isInCheck(color) && !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color) && !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,4), null), color)) {
+                if (!isInCheck(color) &&
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color) &&
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,4), null), color)) {
                     castlingMoves.add(new ChessMove(kingPos, kingEndPos, null));
                 }
             }
@@ -390,7 +391,7 @@ public class ChessGame {
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPos = findKing(teamColor);
         if (kingPos == null) {
-            return false; // uhhh... this shouldn't happen :D
+            return false;
         }
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
@@ -398,7 +399,7 @@ public class ChessGame {
                 ChessPiece piece = board.getPiece(position);
                 if (piece != null && piece.getTeamColor() != teamColor) {
                     Collection<ChessMove> moves = piece.pieceMoves(board, position);
-                    for (ChessMove move : moves) {
+                    for (ChessMove move: moves) {
                         if(move.getEndPosition().equals(kingPos)) {
                             return true; // the king is currently in check :D
                         }
@@ -406,7 +407,8 @@ public class ChessGame {
                 }
             }
         }
-        return false;      }
+        return false;
+    }
 
 //    check if that move would leave the king in check
     private boolean moveLeavesKingInCheck (ChessMove move, TeamColor teamColor) {
