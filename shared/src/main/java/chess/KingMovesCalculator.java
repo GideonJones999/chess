@@ -22,6 +22,9 @@ public class KingMovesCalculator implements PieceMovesCalculator {
             if (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
                 ChessPosition movementOption = new ChessPosition(newRow, newCol);
                 ChessPiece targetPiece = board.getPiece(movementOption);
+                if (isAdjacentToEnemyKing(board, movementOption,kingEl.getTeamColor())) {
+                    continue;
+                }
                 if (targetPiece == null) {
                     moves.add(new ChessMove(position, movementOption, null));
 //                    System.out.println(movementOption + " is a valid move");
@@ -34,5 +37,24 @@ public class KingMovesCalculator implements PieceMovesCalculator {
         }
 
         return moves;
+    }
+    private boolean isAdjacentToEnemyKing(ChessBoard board, ChessPosition pos, ChessGame.TeamColor myColor) {
+        int[] dx = {-1, -1, -1, 0, 1, 1, 1, 0};
+        int[] dy = {-1, 0, 1, 1, 1, 0, -1, -1};
+
+        for (int i = 0; i < dx.length; i++) {
+            int adjRow = pos.getRow() + dx[i];
+            int adjCol = pos.getColumn() + dy[i];
+            if (adjRow >= 1 && adjRow <= 8 && adjCol >= 1 && adjCol <= 8) {
+                ChessPosition adjPos = new ChessPosition(adjRow, adjCol);
+                ChessPiece piece = board.getPiece(adjPos);
+                if (piece != null &&
+                        piece.getPieceType() == ChessPiece.PieceType.KING &&
+                        piece.getTeamColor() != myColor) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -77,7 +77,10 @@ public class ChessGame {
 
 //      Todo: Add Castling Moves for Kings
         if (piece.getPieceType() ==  ChessPiece.PieceType.KING) {
-            allMoves.addAll(getCastlingMoves(startPosition, piece.getTeamColor()));
+            int expectedRow = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : 8;
+            if (startPosition.getRow() == expectedRow) {
+                allMoves.addAll(getCastlingMoves(startPosition, piece.getTeamColor()));
+            }
         }
 //      Todo: Add en passant moves for Pawns
         if (piece.getPieceType() ==  ChessPiece.PieceType.PAWN) {
