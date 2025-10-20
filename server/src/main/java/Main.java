@@ -9,3 +9,9 @@ public class Main {
         System.out.println("♕ 240 Chess Server");
     }
 }
+
+// TODO:
+//  Implement Register Endpoint
+//  Implement Login
+//  AuthToken Endpoints
+
