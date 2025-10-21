@@ -7,27 +7,35 @@ import java.util.Map;
 
 // Data Access
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 
 // Services
 import service.ClearService;
+import service.RegisterService;
+import service.RegisterRequest;
+import service.RegisterResult;
 
 public class Server {
     private final Javalin javalin;
     private final DataAccess dataAccess;
     private final ClearService clearService;
+    private final RegisterService registerService;
     private final Gson gson = new Gson();
 
     public Server() {
         dataAccess = new MemoryDataAccess();
         clearService = new ClearService(dataAccess);
+        registerService = new RegisterService(dataAccess);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register Endpoints Here
         javalin.delete("/db", this::handleClear);
+        javalin.post("/user", this::handleRegister);
 
         // Register Exception Handlers Here
+        javalin.exception(DataAccessException.class, this::handleDataAccessException);
         javalin.exception(Exception.class, this::handleException);
     }
 
@@ -35,6 +43,26 @@ public class Server {
         clearService.clear();
         ctx.status(200);
         ctx.json("{}");
+    }
+
+    private void handleRegister(Context ctx) throws Exception {
+        RegisterRequest request = gson.fromJson(ctx.body(), RegisterRequest.class);
+        RegisterResult result = registerService.register(request);
+        ctx.status(200);
+        ctx.json(result);
+    }
+
+    private void handleDataAccessException(DataAccessException e, Context ctx) {
+        if (e.getMessage().contains("Bad Request")) {
+            ctx.status(400);
+        } else if (e.getMessage().contains("Already Taken")) {
+            ctx.status(403);
+        } else if (e.getMessage().contains("Unauthorized")) {
+            ctx.status(401);
+        } else {
+            ctx.status(500);
+        }
+        ctx.json(Map.of("message", e.getMessage()));
     }
 
     private void handleException(Exception e, Context ctx) {
