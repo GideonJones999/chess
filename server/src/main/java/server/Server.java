@@ -12,22 +12,21 @@ import dataaccess.MemoryDataAccess;
 
 // Services
 import io.javalin.json.JavalinGson;
-import service.ClearService;
-import service.RegisterService;
-import service.RegisterRequest;
-import service.RegisterResult;
+import service.*;
 
 public class Server {
     private final Javalin javalin;
     private final DataAccess dataAccess;
     private final ClearService clearService;
     private final RegisterService registerService;
+    private final LoginService loginService;
     private final Gson gson = new Gson();
 
     public Server() {
         dataAccess = new MemoryDataAccess();
         clearService = new ClearService(dataAccess);
         registerService = new RegisterService(dataAccess);
+        loginService = new LoginService(dataAccess);
 
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
@@ -37,6 +36,7 @@ public class Server {
         // Register Endpoints Here
         javalin.delete("/db", this::handleClear);
         javalin.post("/user", this::handleRegister);
+        javalin.post("/session", this::handleLogin);
 
         // Register Exception Handlers Here
         javalin.exception(DataAccessException.class, this::handleDataAccessException);
@@ -52,6 +52,13 @@ public class Server {
     private void handleRegister(Context ctx) throws Exception {
         RegisterRequest request = gson.fromJson(ctx.body(), RegisterRequest.class);
         RegisterResult result = registerService.register(request);
+        ctx.status(200);
+        ctx.json(result);
+    }
+
+    private void handleLogin(Context ctx) throws Exception {
+        LoginRequest request = gson.fromJson(ctx.body(), LoginRequest.class);
+        LoginResult result = loginService.login(request);
         ctx.status(200);
         ctx.json(result);
     }
