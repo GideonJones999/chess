@@ -11,6 +11,7 @@ import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 
 // Services
+import io.javalin.json.JavalinGson;
 import service.ClearService;
 import service.RegisterService;
 import service.RegisterRequest;
@@ -28,7 +29,10 @@ public class Server {
         clearService = new ClearService(dataAccess);
         registerService = new RegisterService(dataAccess);
 
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
+        javalin = Javalin.create(config -> {
+            config.staticFiles.add("web");
+            config.jsonMapper(new JavalinGson());
+        });
 
         // Register Endpoints Here
         javalin.delete("/db", this::handleClear);
