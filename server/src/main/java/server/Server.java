@@ -23,6 +23,7 @@ public class Server {
     private final LogoutService logoutService;
     private final ListGamesService listGamesService;
     private final CreateGameService createGameService;
+    private final JoinGameService joinGameService;
     private final Gson gson = new Gson();
 
     public Server() {
@@ -33,6 +34,7 @@ public class Server {
         logoutService = new LogoutService(dataAccess);
         listGamesService = new ListGamesService(dataAccess);
         createGameService = new CreateGameService(dataAccess);
+        joinGameService = new JoinGameService(dataAccess);
 
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
@@ -46,7 +48,7 @@ public class Server {
         javalin.delete("/session", this::handleLogout);
         javalin.post("/game", this::handleCreateGame);
         javalin.get("/game", this::handleListGames);
-
+        javalin.put("/game", this::handleJoinGame);
 
         // Register Exception Handlers Here
         javalin.exception(DataAccessException.class, this::handleDataAccessException);
@@ -98,6 +100,17 @@ public class Server {
         ListGamesResult result = listGamesService.listGames(request);
         ctx.status(200);
         ctx.json(result);
+    }
+
+    private void handleJoinGame(Context ctx) throws Exception {
+        String authToken = ctx.header("authorization");
+        Map<String, Object> body = gson.fromJson(ctx.body(), Map.class);
+        String playerColor = (String) body.get("playerColor");
+        int gameID = ((Double) body.get("gameID")).intValue();
+        JoinGameRequest request = new JoinGameRequest(authToken, playerColor, gameID);
+        joinGameService.joinGame(request);
+        ctx.status(200);
+        ctx.json("{}");
     }
 
     private void handleDataAccessException(DataAccessException e, Context ctx) {
