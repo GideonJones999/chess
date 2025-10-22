@@ -10,6 +10,7 @@ public class MemoryDataAccess implements DataAccess {
     private Map<String, AuthData> authTokens = new HashMap<>();
     private Map<Integer, GameData> games = new HashMap<>();
     private Map<String, UserData> users = new HashMap<>();
+    private int nextGameID = 1;
 
     @Override
     public void clearUsers() throws DataAccessException {
@@ -63,6 +64,16 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public GameData createGame(GameData game) throws DataAccessException {
-        return games.put(game.gameID(), game);
+        int gameId = (game.gameID() == 0) ? nextGameID ++: game.gameID();
+
+        GameData newGame = new GameData(
+                gameId,
+                game.whiteUsername(),
+                game.blackUsername(),
+                game.gameTitle(),
+                game.game()
+        );
+        games.put(gameId, newGame);
+        return newGame;
     }
 }
