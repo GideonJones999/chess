@@ -13,7 +13,7 @@ public class CreateGameService {
         this.dataAccess = dataAccess;
     }
 
-    public CreateGameResult createGame(CreateGamesRequest request) throws DataAccessException {
+    public CreateGameResult createGame(CreateGameRequest request) throws DataAccessException {
         if (request.gameTitle() == null || request.gameTitle().isEmpty()) {
             throw new DataAccessException("Error: bad request");
         }

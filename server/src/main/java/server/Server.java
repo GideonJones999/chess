@@ -86,7 +86,7 @@ public class Server {
         Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
         String gameTitle = body.get("gameTitle");
 
-        CreateGamesRequest request = new CreateGamesRequest(authToken, gameTitle);
+        CreateGameRequest request = new CreateGameRequest(authToken, gameTitle);
         CreateGameResult result = createGameService.createGame(request);
         ctx.status(200);
         ctx.json(result);
