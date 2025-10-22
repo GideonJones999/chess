@@ -28,6 +28,7 @@ public class Server {
         clearService = new ClearService(dataAccess);
         registerService = new RegisterService(dataAccess);
         loginService = new LoginService(dataAccess);
+        logoutService = new LogoutService(dataAccess);
 
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
