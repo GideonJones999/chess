@@ -1,7 +1,8 @@
 package dataaccess;
 
-import model.AuthData;
-import model.UserData;
+import model.*;
+import java.util.Collection;
+
 
 public interface DataAccess {
 //    Clear Methods
@@ -17,4 +18,9 @@ public interface DataAccess {
     void createAuth(AuthData auth) throws DataAccessException;
     AuthData getAuth(String authToken) throws DataAccessException;
     void deleteAuth(String authToken) throws DataAccessException;
+
+//    Game Methods
+    GameData createGame(GameData game) throws DataAccessException;
+    GameData getGame(int gameID) throws DataAccessException;
+    Collection<GameData> listGames() throws DataAccessException;
 }

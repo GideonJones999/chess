@@ -1,7 +1,6 @@
 package dataaccess;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import model.*;
 import java.util.HashMap;
@@ -47,7 +46,23 @@ public class MemoryDataAccess implements DataAccess {
         return authTokens.get(authToken);
     }
 
+    @Override
     public void deleteAuth(String authToken) throws DataAccessException {
         authTokens.remove(authToken);
+    }
+
+    @Override
+    public Collection<GameData> listGames() throws DataAccessException {
+        return games.values();
+    }
+
+    @Override
+    public GameData getGame(int gameId) throws DataAccessException {
+        return games.get(gameId);
+    }
+
+    @Override
+    public GameData createGame(GameData game) throws DataAccessException {
+        return games.put(game.gameID(), game);
     }
 }
