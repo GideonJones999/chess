@@ -11,7 +11,7 @@ public class Main {
 }
 
 // TODO:
-//  Implement Register Endpoint
-//  Implement Login
-//  AuthToken Endpoints
-
+//  Logout
+//  List Games
+//  Create Game
+//  Join Game

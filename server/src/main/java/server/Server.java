@@ -20,6 +20,7 @@ public class Server {
     private final ClearService clearService;
     private final RegisterService registerService;
     private final LoginService loginService;
+    private final LogoutService logoutService;
     private final Gson gson = new Gson();
 
     public Server() {
@@ -37,6 +38,7 @@ public class Server {
         javalin.delete("/db", this::handleClear);
         javalin.post("/user", this::handleRegister);
         javalin.post("/session", this::handleLogin);
+        javalin.delete("/session", this::handleLogout);
 
         // Register Exception Handlers Here
         javalin.exception(DataAccessException.class, this::handleDataAccessException);
@@ -61,6 +63,14 @@ public class Server {
         LoginResult result = loginService.login(request);
         ctx.status(200);
         ctx.json(result);
+    }
+
+    private void handleLogout(Context ctx) throws Exception {
+        String authToken = ctx.header("authorization");
+        LogoutRequest request = new LogoutRequest(authToken);
+        logoutService.logout(request);
+        ctx.status(200);
+        ctx.json("{}");
     }
 
     private void handleDataAccessException(DataAccessException e, Context ctx) {
