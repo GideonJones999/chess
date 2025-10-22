@@ -1,4 +1,3 @@
-import chess.*;
 import server.Server;
 
 public class Main {
@@ -9,9 +8,3 @@ public class Main {
         System.out.println("♕ 240 Chess Server");
     }
 }
-
-// TODO:
-//  Logout
-//  List Games
-//  Create Game
-//  Join Game

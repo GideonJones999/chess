@@ -16,7 +16,6 @@ import service.*;
 
 public class Server {
     private final Javalin javalin;
-    private final DataAccess dataAccess;
     private final ClearService clearService;
     private final RegisterService registerService;
     private final LoginService loginService;
@@ -27,7 +26,7 @@ public class Server {
     private final Gson gson = new Gson();
 
     public Server() {
-        dataAccess = new MemoryDataAccess();
+        DataAccess dataAccess = new MemoryDataAccess();
         clearService = new ClearService(dataAccess);
         registerService = new RegisterService(dataAccess);
         loginService = new LoginService(dataAccess);

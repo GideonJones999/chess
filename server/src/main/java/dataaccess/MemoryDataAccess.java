@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MemoryDataAccess implements DataAccess {
-    private Map<String, AuthData> authTokens = new HashMap<>();
-    private Map<Integer, GameData> games = new HashMap<>();
-    private Map<String, UserData> users = new HashMap<>();
+    private final Map<String, AuthData> authTokens = new HashMap<>();
+    private final Map<Integer, GameData> games = new HashMap<>();
+    private final Map<String, UserData> users = new HashMap<>();
     private int nextGameID = 1;
 
     @Override
