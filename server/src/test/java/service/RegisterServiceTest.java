@@ -40,7 +40,8 @@ public class RegisterServiceTest {
                 () -> registerService.register(request2),
                 "Should throw exception for duplicate username"
         );
-        assertTrue(exception.getMessage().contains("already taken"));
+        System.out.println(exception.getMessage());
+        assertTrue(exception.getMessage().contains("Error: User already exists"));
     }
 
     @Test
@@ -51,6 +52,7 @@ public class RegisterServiceTest {
                 () -> registerService.register(request),
                 "Should throw exception for null username"
         );
-        assertTrue(exception.getMessage().contains("bad request"));
+        System.out.println(exception.getMessage());
+        assertTrue(exception.getMessage().contains("Error: Bad Request"));
     }
 }

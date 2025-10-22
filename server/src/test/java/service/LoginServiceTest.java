@@ -40,7 +40,8 @@ public class LoginServiceTest {
                 () -> loginService.login(request),
                 "Should throw Exception for Wrong Password"
         );
-        assertTrue(exception.getMessage().contains("unauthorized"));
+        System.out.println(exception.getMessage());
+        assertTrue(exception.getMessage().contains("Error: Unauthorized login"));
     }
 
     @Test

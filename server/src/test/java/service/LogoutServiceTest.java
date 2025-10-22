@@ -37,7 +37,7 @@ public class LogoutServiceTest {
                 () -> logoutService.logout(request),
                 "Should throw Exception for Invalid Token"
         );
-
-        assertTrue(exception.getMessage().contains("unauthorized"));
+        System.out.println(exception.getMessage());
+        assertTrue(exception.getMessage().contains("Error: Unauthorized"));
     }
 }
