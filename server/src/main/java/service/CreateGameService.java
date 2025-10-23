@@ -26,7 +26,6 @@ public class CreateGameService {
         GameData newGame = new GameData(0, null, null, request.gameName(), new ChessGame());
         GameData createdGame = dataAccess.createGame(newGame);
         Integer id = createdGame.gameID();  // auto-boxes int -> Integer
-        CreateGameResult result = new CreateGameResult(id);
-        return result;
+        return new CreateGameResult(id);
     }
 }
