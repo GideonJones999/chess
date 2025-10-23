@@ -1,4 +1,4 @@
-package service;
+package service.game;
 
 public record ListGamesRequest(String authToken) {
 }

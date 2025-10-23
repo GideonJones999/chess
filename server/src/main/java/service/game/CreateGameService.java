@@ -1,4 +1,4 @@
-package service;
+package service.game;
 
 import chess.ChessGame;
 import dataaccess.DataAccess;

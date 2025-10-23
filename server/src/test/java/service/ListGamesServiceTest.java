@@ -7,6 +7,9 @@ import model.AuthData;
 import model.GameData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import service.game.ListGamesRequest;
+import service.game.ListGamesResult;
+import service.game.ListGamesService;
 
 import static org.junit.jupiter.api.Assertions.*;
 

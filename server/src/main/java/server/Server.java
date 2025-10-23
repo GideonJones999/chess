@@ -12,7 +12,9 @@ import dataaccess.MemoryDataAccess;
 
 // Services
 import io.javalin.json.JavalinGson;
-import service.*;
+import service.auth.*;
+import service.game.*;
+import service.utils.ClearService;
 
 public class Server {
     private final Javalin javalin;

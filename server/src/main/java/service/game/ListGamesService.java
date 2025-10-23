@@ -1,12 +1,10 @@
-package service;
+package service.game;
 
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.GameData;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class ListGamesService {
     private final DataAccess dataAccess;

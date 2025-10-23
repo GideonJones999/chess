@@ -5,6 +5,9 @@ import dataaccess.MemoryDataAccess;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import service.auth.LoginRequest;
+import service.auth.LoginResult;
+import service.auth.LoginService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
