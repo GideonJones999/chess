@@ -230,8 +230,8 @@ public class ChessGame {
 
         if (!isPathClear(kingPos, rookPos)) { return; }
         if (isInCheck(color)) { return; }
-        if (moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color)) { return; }
-        if (moveLeavesKingInCheck(new ChessMove(kingPos, kingPassPos, null), color)) { return; }
+        if (!moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color)) { return; }
+        if (!moveLeavesKingInCheck(new ChessMove(kingPos, kingPassPos, null), color)) { return; }
 
         moves.add(new ChessMove(kingPos, kingEndPos, null));
     }
