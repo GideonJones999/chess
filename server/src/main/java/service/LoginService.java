@@ -1,4 +1,5 @@
 package service;
+
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
@@ -15,14 +16,11 @@ public class LoginService {
     public LoginResult login(LoginRequest request) throws DataAccessException {
         if (request.username() == null || request.username().isEmpty() ||
                 request.password() == null || request.password().isEmpty()) {
-            throw new DataAccessException("Username or password is empty");
+            throw new DataAccessException("Error: Bad Request");
         }
         UserData user = dataAccess.getUser(request.username());
-        if (user == null) {
-            throw new DataAccessException("User not found");
-        }
-        if (!user.password().equals(request.password())) {
-            throw new DataAccessException("Error: Unauthorized login");
+        if (user == null || !user.password().equals(request.password())) {
+            throw new DataAccessException("Error: Unauthorized");
         }
 
         String authToken = UUID.randomUUID().toString();

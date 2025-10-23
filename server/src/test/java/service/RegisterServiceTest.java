@@ -41,7 +41,7 @@ public class RegisterServiceTest {
                 "Should throw exception for duplicate username"
         );
         System.out.println(exception.getMessage());
-        assertTrue(exception.getMessage().contains("Error: User already exists"));
+        assertTrue(exception.getMessage().contains("Error: Forbidden"));
     }
 
     @Test

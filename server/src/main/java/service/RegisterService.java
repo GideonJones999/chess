@@ -14,14 +14,14 @@ public class RegisterService {
 
     public RegisterResult register(RegisterRequest request) throws DataAccessException {
         if (request.username() == null || request.username().isEmpty() ||
-                request.password() == null || request.password().isEmpty()
-                || request.email() == null || request.email().isEmpty()) {
+            request.password() == null || request.password().isEmpty() ||
+            request.email() == null || request.email().isEmpty()) {
             throw new DataAccessException("Error: Bad Request");
         }
 
         UserData existingUser = dataAccess.getUser(request.username());
         if (existingUser != null) {
-            throw new DataAccessException("Error: User already exists");
+            throw new DataAccessException("Error: Forbidden");
         }
 
         UserData newUser = new UserData(request.username(), request.password(), request.email());

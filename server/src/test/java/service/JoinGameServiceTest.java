@@ -62,7 +62,7 @@ class JoinGameServiceTest {
                 "Should throw exception when color is taken"
         );
 
-        assertEquals("Error: already taken", exception.getMessage());
+        assertEquals("Error: Forbidden", exception.getMessage());
     }
 
     @Test

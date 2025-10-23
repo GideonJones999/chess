@@ -41,7 +41,7 @@ public class LoginServiceTest {
                 "Should throw Exception for Wrong Password"
         );
         System.out.println(exception.getMessage());
-        assertTrue(exception.getMessage().contains("Error: Unauthorized login"));
+        assertTrue(exception.getMessage().contains("Error: Unauthorized"));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class LoginServiceTest {
                 () -> loginService.login(request),
                 "Should throw Exception for Non-Existing User"
         );
-        assertTrue(exception.getMessage().contains("User not found"));
+        assertTrue(exception.getMessage().contains("Unauthorized"));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class LoginServiceTest {
                 () -> loginService.login(request),
                 "Should throw exception for null username"
         );
-        assertTrue(exception.getMessage().contains("empty"));
+        assertTrue(exception.getMessage().contains("Bad Request"));
     }
 
 }

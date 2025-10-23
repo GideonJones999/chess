@@ -64,13 +64,12 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public GameData createGame(GameData game) throws DataAccessException {
-        int gameId = (game.gameID() == 0) ? nextGameID ++: game.gameID();
-
+        int gameId = nextGameID++;
         GameData newGame = new GameData(
                 gameId,
                 game.whiteUsername(),
                 game.blackUsername(),
-                game.gameTitle(),
+                game.gameName(),
                 game.game()
         );
         games.put(gameId, newGame);

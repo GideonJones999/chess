@@ -241,7 +241,6 @@ public class StandardAPITests {
     public void joinGameBadColor() {
         TestCreateResult createResult = serverFacade.createGame(createRequest, existingAuth);
         int gameID = createResult.getGameID();
-
         //If you use deserialize to the TeamColor enum instead of a String each of these will be read as null
         for(String color : new String[]{null, "", "GREEN"}) {
             assertHttpBadRequest(serverFacade.joinPlayer(new TestJoinRequest(color, gameID), existingAuth));

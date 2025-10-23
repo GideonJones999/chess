@@ -84,10 +84,11 @@ public class Server {
 
     private void handleCreateGame(Context ctx) throws Exception {
         String authToken = ctx.header("authorization");
-        Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
-        String gameTitle = body.get("gameTitle");
 
-        CreateGameRequest request = new CreateGameRequest(authToken, gameTitle);
+        Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
+        String gameName = body != null ? body.get("gameName") : null;
+
+        CreateGameRequest request = new CreateGameRequest(authToken, gameName);
         CreateGameResult result = createGameService.createGame(request);
         ctx.status(200);
         ctx.json(result);
@@ -105,19 +106,29 @@ public class Server {
         String authToken = ctx.header("authorization");
         Map<String, Object> body = gson.fromJson(ctx.body(), Map.class);
         String playerColor = (String) body.get("playerColor");
-        int gameID = ((Double) body.get("gameID")).intValue();
-        JoinGameRequest request = new JoinGameRequest(authToken, playerColor, gameID);
+        Object gameIDObj = body.get("gameID");
+        // Handle gameID being null or wrong type
+        int gameID;
+        if (gameIDObj == null) {
+            throw new DataAccessException("Error: bad request");
+        } else if (gameIDObj instanceof Double) {
+            gameID = ((Double) gameIDObj).intValue();
+        } else if (gameIDObj instanceof Integer) {
+            gameID = (Integer) gameIDObj;
+        } else {
+            throw new DataAccessException("Error: bad request");
+        }        JoinGameRequest request = new JoinGameRequest(authToken, playerColor, gameID);
         joinGameService.joinGame(request);
         ctx.status(200);
         ctx.json("{}");
     }
 
     private void handleDataAccessException(DataAccessException e, Context ctx) {
-        if (e.getMessage().contains("Bad Request")) {
+        if (e.getMessage().toLowerCase().contains("bad request")) {
             ctx.status(400);
-        } else if (e.getMessage().contains("Already Taken")) {
+        } else if (e.getMessage().toLowerCase().contains("forbidden")) {
             ctx.status(403);
-        } else if (e.getMessage().contains("Unauthorized")) {
+        } else if (e.getMessage().toLowerCase().contains("unauthorized")) {
             ctx.status(401);
         } else {
             ctx.status(500);
