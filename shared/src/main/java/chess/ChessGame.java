@@ -232,8 +232,10 @@ public class ChessGame {
 
             if(isPathClear(kingPos, rookPos)) {
                 if (!isInCheck(color) &&
-                        !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color) &&
-                        !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,6), null), color)) {
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos,
+                                null), color) &&
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,6),
+                                null), color)) {
                     castlingMoves.add(new ChessMove(kingPos, kingEndPos, null));
                 }
             }
@@ -245,8 +247,10 @@ public class ChessGame {
 
             if(isPathClear(kingPos, rookPos)) {
                 if (!isInCheck(color) &&
-                        !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos, null), color) &&
-                        !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,4), null), color)) {
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, kingEndPos,
+                                null), color) &&
+                        !moveLeavesKingInCheck(new ChessMove(kingPos, new ChessPosition(row,4),
+                                null), color)) {
                     castlingMoves.add(new ChessMove(kingPos, kingEndPos, null));
                 }
             }
