@@ -5,7 +5,7 @@ public class DataAccessTestBase {
     protected MySQLDataAccess dataAccess;
 
     @BeforeEach
-    private void setup() throws DataAccessException {
+    public void setup() throws DataAccessException {
         dataAccess = new MySQLDataAccess();
         dataAccess.clearUsers();
         dataAccess.clearGames();
