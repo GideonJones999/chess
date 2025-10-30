@@ -91,27 +91,89 @@ public class MySQLDataAccess implements DataAccess {
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
+        String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
 
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, user.username());
+                ps.setString(2, hashedPassword);
+                ps.setString(3, user.email());
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error creating user: " + e.getMessage());
+        }
     }
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT username, password, email FROM users WHERE username=?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return new UserData(
+                                rs.getString("username"),
+                                rs.getString("password"),
+                                rs.getString("email")
+                        );
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error getting user: " + e.getMessage());
+        }
         return null;
     }
 
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
-
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, auth.authToken());
+                ps.setString(2, auth.username());
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error creating auth: " + e.getMessage());
+        }
     }
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authToken);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return new AuthData(
+                                rs.getString("authToken"),
+                                rs.getString("username")
+                        );
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error getting auth: " + e.getMessage());
+        }
         return null;
     }
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "DELETE FROM auth WHERE authToken=?";
+            try (var ps = conn.prepareStatement(statement)) {
+                    ps.setString(1, authToken);
+                    ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error getting auth: " + e.getMessage());
+        }
     }
 
     @Override
