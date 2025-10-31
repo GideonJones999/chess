@@ -3,6 +3,8 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.util.UUID;
 
 public class RegisterService {
@@ -24,7 +26,9 @@ public class RegisterService {
             throw new DataAccessException("Error: Forbidden");
         }
 
-        UserData newUser = new UserData(request.username(), request.password(), request.email());
+        String hashedPass = BCrypt.hashpw(request.password(), BCrypt.gensalt());
+
+        UserData newUser = new UserData(request.username(), hashedPass, request.email());
         dataAccess.createUser(newUser);
 
         String authToken = UUID.randomUUID().toString();
