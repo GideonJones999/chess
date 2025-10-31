@@ -26,9 +26,9 @@ public class RegisterService {
             throw new DataAccessException("Error: Forbidden");
         }
 
-        String hashedPass = BCrypt.hashpw(request.password(), BCrypt.gensalt());
+//        String hashedPass = BCrypt.hashpw(request.password(), BCrypt.gensalt());
 
-        UserData newUser = new UserData(request.username(), hashedPass, request.email());
+        UserData newUser = new UserData(request.username(), request.password(), request.email());
         dataAccess.createUser(newUser);
 
         String authToken = UUID.randomUUID().toString();

@@ -51,7 +51,7 @@ public class MySQLDataAccess implements DataAccess {
                 }
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Unable to configure database: " + e.getMessage());
+            throw new DataAccessException("Error: Unable to configure database: " + e.getMessage());
         }
     }
 

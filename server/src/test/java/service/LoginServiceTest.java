@@ -5,6 +5,7 @@ import dataaccess.MemoryDataAccess;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 import service.auth.LoginRequest;
 import service.auth.LoginResult;
 import service.auth.LoginService;
@@ -20,7 +21,7 @@ public class LoginServiceTest {
         dataAccess = new MemoryDataAccess();
         loginService = new LoginService(dataAccess);
 
-        UserData user = new UserData("testUser", "password123", "test@email.com");
+        UserData user = new UserData("testUser", BCrypt.hashpw("password123", BCrypt.gensalt()), "test@email.com");
         dataAccess.createUser(user);
     }
 

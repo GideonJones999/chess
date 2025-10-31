@@ -21,7 +21,11 @@ public class LoginService {
             throw new DataAccessException("Error: Bad Request");
         }
         UserData user = dataAccess.getUser(request.username());
-        if (user == null || !BCrypt.checkpw(request.password(), user.password())) {
+        try {
+            if (user == null || !BCrypt.checkpw(request.password(), user.password())) {
+                throw new DataAccessException("Error: Unauthorized");
+            }
+        } catch (IllegalArgumentException e) {
             throw new DataAccessException("Error: Unauthorized");
         }
 

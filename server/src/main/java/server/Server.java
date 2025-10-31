@@ -1,5 +1,6 @@
 package server;
 
+import dataaccess.MySQLDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
 import com.google.gson.Gson;
@@ -16,6 +17,8 @@ import service.auth.*;
 import service.game.*;
 import service.utils.ClearService;
 
+import javax.xml.crypto.Data;
+
 public class Server {
     private final Javalin javalin;
     private final ClearService clearService;
@@ -28,7 +31,20 @@ public class Server {
     private final Gson gson = new Gson();
 
     public Server() {
-        DataAccess dataAccess = new MemoryDataAccess();
+        this(true);
+    }
+
+    public Server(boolean useMySQL) {
+        DataAccess dataAccess;
+        try {
+            if (useMySQL) {
+                dataAccess = new MySQLDataAccess();
+            } else {
+                dataAccess = new MemoryDataAccess();
+            }
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to init database: "+e.getMessage());
+        }
         clearService = new ClearService(dataAccess);
         registerService = new RegisterService(dataAccess);
         loginService = new LoginService(dataAccess);

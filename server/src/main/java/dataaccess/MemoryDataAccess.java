@@ -79,7 +79,7 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public void updateGame(GameData game) throws DataAccessException {
         if (!games.containsKey(game.gameID())) {
-            throw new DataAccessException("Game does not exist");
+            throw new DataAccessException("Error: Game does not exist");
         }
         games.put(game.gameID(), game);
     }
