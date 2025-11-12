@@ -8,6 +8,8 @@ import java.net.http.HttpResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import model.LoginRequest;
+import model.LoginResult;
 import model.RegisterResult;
 import model.RegisterRequest;
 
@@ -34,7 +36,7 @@ public class ServerFacade {
                     .header("Content-Type", "application/json");
 
             if (authToken != null && !authToken.isBlank()) {
-                requestBuilder.header("Authorization", "Bearer " + authToken);
+                requestBuilder.header("Authorization", authToken);
             }
 
             if (reqBody != null) {
@@ -94,5 +96,9 @@ public class ServerFacade {
 
     public RegisterResult register(RegisterRequest request) throws ServerException {
         return post("/user", request, RegisterResult.class, null);
+    }
+
+    public LoginResult login(LoginRequest request) throws ServerException {
+        return post("/session", request, LoginResult.class, null);
     }
 }
