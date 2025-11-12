@@ -112,7 +112,9 @@ public class ServerFacade {
         return createGame(new CreateGameRequest(gameName), authToken);
     }
 
-//    list games
-//    create games
+    public ListGamesResult listGames(String authToken) throws ServerException {
+        return get("/game", ListGamesResult.class, authToken);
+    }
+
 //    join games
 }

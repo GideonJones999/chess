@@ -2,6 +2,7 @@ package ui;
 import serverfacade.ServerFacade;
 import serverfacade.ServerException;
 import java.util.Scanner;
+import model.*;
 
 public class PostloginUI {
     private final ServerFacade facade;
@@ -45,7 +46,23 @@ public class PostloginUI {
     }
 
     private void listGames() {
-        System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "List Games (TODO)" + EscapeSequences.RESET_TEXT_COLOR);
+        try {
+            ListGamesResult result = facade.listGames(authToken);
+            if (result.games() == null || result.games().isEmpty()) {
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "No Games Available." + EscapeSequences.RESET_TEXT_COLOR);
+            } else {
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "\n=== Games ===" + EscapeSequences.RESET_TEXT_COLOR);
+                int index = 1;
+                for (model.GameData game: result.games()) {
+                    String white = game.whiteUsername() != null ? game.whiteUsername() : "OPEN";
+                    String black = game.blackUsername() != null ? game.blackUsername() : "OPEN";
+                    System.out.printf("%d. %s |  White: %s | Black: %s%n", index, game.gameName(), white, black);
+                    index++;
+                }
+            }
+        } catch (ServerException e) {
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "List Games Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+        }
     }
 
     private void createGame() {
