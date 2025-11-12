@@ -101,4 +101,8 @@ public class ServerFacade {
     public LoginResult login(LoginRequest request) throws ServerException {
         return post("/session", request, LoginResult.class, null);
     }
+
+    public void logout(String authToken) throws ServerException {
+        delete("/session", Void.class, authToken);
+    }
 }
