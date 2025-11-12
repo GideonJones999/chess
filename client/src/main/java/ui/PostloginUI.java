@@ -49,7 +49,19 @@ public class PostloginUI {
     }
 
     private void createGame() {
-        System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Create Game (TODO)" + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.print("Enter new game name (empty to cancel): ");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) {
+            System.out.println("Cancelled.");
+            return;
+        }
+
+        try {
+            model.CreateGameResult result = facade.createGame(name, authToken);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Created Game with ID: " + result.gameID() + EscapeSequences.RESET_TEXT_COLOR);
+        } catch (ServerException e) {
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Create game failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+        }
     }
 
     private void joinGame() {

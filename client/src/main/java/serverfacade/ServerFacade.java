@@ -8,10 +8,7 @@ import java.net.http.HttpResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import model.LoginRequest;
-import model.LoginResult;
-import model.RegisterResult;
-import model.RegisterRequest;
+import model.*;
 
 public class ServerFacade {
     private final String serverUrl;
@@ -27,7 +24,7 @@ public class ServerFacade {
     static final HttpClient httpClient = HttpClient.newHttpClient();
     static final Gson gson = new Gson();
 
-    private <T> T makeRequest(String method, String endpoint, Object reqBody, Class<T> responseType, String authToken)
+    private <R> R makeRequest(String method, String endpoint, Object reqBody, Class<R> responseType, String authToken)
             throws ServerException {
         try {
             String url = serverUrl + endpoint;
@@ -78,19 +75,19 @@ public class ServerFacade {
         }
     }
 
-    public <T> T get(String endpoint, Class<T> responseType, String authToken) throws ServerException {
+    public <R> R get(String endpoint, Class<R> responseType, String authToken) throws ServerException {
         return makeRequest("GET", endpoint, null, responseType, authToken);
     }
 
-    public <T> T post(String endpoint, Object body, Class<T> responseType, String authToken) throws ServerException {
+    public <Q, R> R post(String endpoint, Q body, Class<R> responseType, String authToken) throws ServerException {
         return makeRequest("POST", endpoint, body, responseType, authToken);
     }
 
-    public <T> T put(String endpoint, Object body, Class<T> responseType, String authToken) throws ServerException {
+    public <Q, R> R put(String endpoint, Q body, Class<R> responseType, String authToken) throws ServerException {
         return makeRequest("PUT", endpoint, body, responseType, authToken);
     }
 
-    public <T> T delete(String endpoint, Class<T> responseType, String authToken) throws ServerException {
+    public <R> R delete(String endpoint, Class<R> responseType, String authToken) throws ServerException {
         return makeRequest("DELETE", endpoint, null, responseType, authToken);
     }
 
@@ -104,6 +101,15 @@ public class ServerFacade {
 
     public void logout(String authToken) throws ServerException {
         delete("/session", Void.class, authToken);
+    }
+
+    public CreateGameResult createGame(CreateGameRequest request, String authToken) throws ServerException {
+        return post("/game", request, CreateGameResult.class, authToken);
+    }
+
+//    Convenience Overload
+    public CreateGameResult createGame(String gameName, String authToken) throws ServerException {
+        return createGame(new CreateGameRequest(gameName), authToken);
     }
 
 //    list games
