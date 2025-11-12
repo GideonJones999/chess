@@ -132,4 +132,40 @@ public class ServerFacadeTests {
         Assertions.assertTrue(ex.getStatusCode() == 401);
     }
 
+    @Test
+    public void testListGamesSuccess() throws Exception {
+        ServerFacade facade = new ServerFacade(port);
+        String username = "user_" + UUID.randomUUID().toString().replace("-","").substring(0,12);
+        String password = "password123";
+
+        // Register and login
+        model.RegisterRequest regReq = new model.RegisterRequest(username, password, username+"@example.com");
+        facade.register(regReq);
+        model.LoginRequest loginReq = new model.LoginRequest(username, password);
+        model.LoginResult loginRes = facade.login(loginReq);
+
+        // Create a couple games
+        facade.createGame("Game1", loginRes.authToken());
+        facade.createGame("Game2", loginRes.authToken());
+
+        // List games
+        model.ListGamesResult result = facade.listGames(loginRes.authToken());
+
+        Assertions.assertNotNull(result);
+        Assertions.assertNotNull(result.games());
+        Assertions.assertTrue(result.games().size() >= 2);
+    }
+
+    @Test
+    public void testListGamesUnauthorized() throws Exception {
+        ServerFacade facade = new ServerFacade(port);
+
+        // Try to list games without auth token
+        serverfacade.ServerException ex = Assertions.assertThrows(serverfacade.ServerException.class, () -> {
+            facade.listGames(null);
+        });
+
+        // Server should return 401 Unauthorized
+        Assertions.assertTrue(ex.getStatusCode() == 401);
+    }
 }
