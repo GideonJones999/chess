@@ -45,9 +45,29 @@ public class PostloginUI {
         System.out.print("Enter choice: ");
     }
 
+    private void createGame() {
+        System.out.print("Enter new game name (empty to cancel): ");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) {
+            System.out.println("Cancelled.");
+            return;
+        }
+
+        try {
+            model.CreateGameResult result = facade.createGame(name, authToken);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Created Game with ID: " + result.gameID() + EscapeSequences.RESET_TEXT_COLOR);
+        } catch (ServerException e) {
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Create game failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+        }
+    }
+
+    private ListGamesResult fetchGames() throws ServerException {
+        return facade.listGames(authToken);
+    }
+
     private void listGames() {
         try {
-            ListGamesResult result = facade.listGames(authToken);
+            ListGamesResult result = fetchGames();
             if (result.games() == null || result.games().isEmpty()) {
                 System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "No Games Available." + EscapeSequences.RESET_TEXT_COLOR);
             } else {
@@ -65,24 +85,62 @@ public class PostloginUI {
         }
     }
 
-    private void createGame() {
-        System.out.print("Enter new game name (empty to cancel): ");
-        String name = scanner.nextLine().trim();
-        if (name.isEmpty()) {
-            System.out.println("Cancelled.");
-            return;
-        }
-
-        try {
-            model.CreateGameResult result = facade.createGame(name, authToken);
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Created Game with ID: " + result.gameID() + EscapeSequences.RESET_TEXT_COLOR);
-        } catch (ServerException e) {
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Create game failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
-        }
-    }
-
     private void joinGame() {
-        System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Join Game (TODO)" + EscapeSequences.RESET_TEXT_COLOR);
+        try {
+            listGames();
+
+            System.out.print(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Enter Game Number to Join (0 to cancel): " + EscapeSequences.RESET_TEXT_COLOR);
+            String input = scanner.nextLine().trim();
+            int gameNum;
+            try {
+                gameNum = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid Input");
+                return;
+            }
+
+            if (gameNum == 0) {
+                System.out.println("Cancelled");
+                return;
+            }
+
+            ListGamesResult result = fetchGames();
+            java.util.List<model.GameData> gameList = new java.util.ArrayList<>(result.games());
+            if(gameNum < 1 || gameNum > gameList.size()) {
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid Game Number");
+                return;
+            }
+            GameData selectedGame = gameList.get(gameNum-1);
+
+            System.out.println("Join as (W)hite or (B)lack or (V)iewer?");
+            String colorInput = scanner.nextLine().trim().toUpperCase();
+            String playerColor;
+            if (colorInput.equals("W")) {
+                playerColor = "WHITE";
+            } else if (colorInput.equals("B")) {
+                playerColor = "BLACK";
+            } else if (colorInput.equals("V")) {
+                playerColor = null;
+            } else {
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid color choice" + EscapeSequences.RESET_TEXT_COLOR);
+                return;
+            }
+
+            if (playerColor != null) {
+                JoinGameRequest joinReq = new model.JoinGameRequest(playerColor, selectedGame.gameID());
+                facade.joinGame(joinReq, authToken);
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN +
+                        "You will be playing as " +
+                        playerColor +
+                        "!" +
+                        EscapeSequences.RESET_TEXT_COLOR);
+            }
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Joined game!" + EscapeSequences.RESET_TEXT_COLOR);
+            displayGameBoard(selectedGame, playerColor);
+
+        } catch (ServerException e) {
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Join Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+        }
     }
 
     private void logout() {
@@ -92,5 +150,9 @@ public class PostloginUI {
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Logout failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
         }
+    }
+
+    private void displayGameBoard(model.GameData game, String playerColor) {
+
     }
 }

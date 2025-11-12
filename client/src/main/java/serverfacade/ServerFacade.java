@@ -116,5 +116,7 @@ public class ServerFacade {
         return get("/game", ListGamesResult.class, authToken);
     }
 
-//    join games
+    public void joinGame(JoinGameRequest request, String authToken) throws ServerException {
+        put("/game", request, Void.class, authToken);
+    }
 }
