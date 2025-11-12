@@ -105,4 +105,8 @@ public class ServerFacade {
     public void logout(String authToken) throws ServerException {
         delete("/session", Void.class, authToken);
     }
+
+//    list games
+//    create games
+//    join games
 }

@@ -18,18 +18,23 @@ public class PreloginUI {
     public void run() {
         boolean running = true;
         while(running) {
-            displayMenu();
-            String choice = scanner.nextLine().trim().toLowerCase();
+            try {
+                displayMenu();
+                String choice = scanner.nextLine().trim().toLowerCase();
 
-            switch (choice) {
-                case "1", "r", "register" -> registerUser();
-                case "2", "l", "login" -> loginUser();
-                case "3", "h", "help" -> displayHelp();
-                case "4", "q", "quit" -> {
-                    running = false;
-                    System.out.println("Goodbye!");
+                switch (choice) {
+                    case "1", "r", "register" -> registerUser();
+                    case "2", "l", "login" -> loginUser();
+                    case "3", "h", "help" -> displayHelp();
+                    case "4", "q", "quit" -> {
+                        running = false;
+                        System.out.println("Goodbye!");
+                    }
+                    default -> System.out.println("Invalid Choice, try again");
                 }
-                default -> System.out.println("Invalid Choice, try again");
+            } catch (Exception e) {
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "An error occurred: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+                System.out.println("Returning to Menu...");
             }
         }
     }
@@ -54,8 +59,11 @@ public class PreloginUI {
         try {
             RegisterResult result = facade.register(new RegisterRequest(username, password, email));
             System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Registration successful!" + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println("Logging in...");
+            loginWithCredentials(result.username(), password);
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Registration failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+            return;
         }
         loginUser();
     }
@@ -66,10 +74,15 @@ public class PreloginUI {
         System.out.print("Password: ");
         String password = scanner.nextLine().trim();
 
+        loginWithCredentials(username, password);
+    }
+
+    private void loginWithCredentials(String username, String password) {
         try {
             LoginResult result = facade.login(new LoginRequest(username, password));
             System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Login successful!" + EscapeSequences.RESET_TEXT_COLOR);
-             new PostloginUI(facade, result.authToken(), result.username()).run();
+            new PostloginUI(facade, result.authToken(), result.username()).run();
+            return;
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Login failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
         }
