@@ -28,7 +28,8 @@ public class PostloginUI {
                 case "1", "l", "list" -> listGames();
                 case "2", "c", "create" -> createGame();
                 case "3", "j", "join" -> joinGame();
-                case "4", "o", "logout" -> {
+                case "4", "o", "observe" -> observeGame();
+                case "5", "t", "logout" -> {
                     logout();
                     running = false;
                 }
@@ -42,7 +43,8 @@ public class PostloginUI {
         System.out.println("1. List Games");
         System.out.println("2. Create Game");
         System.out.println("3. Join Game");
-        System.out.println("4. Logout");
+        System.out.println("4. Observe Game");
+        System.out.println("5. Logout");
         System.out.print("Enter choice: ");
     }
 
@@ -113,34 +115,62 @@ public class PostloginUI {
             }
             GameData selectedGame = gameList.get(gameNum-1);
 
-            System.out.println("Join as (W)hite or (B)lack or (V)iewer?");
+            System.out.println("Join as (W)hite or (B)lack?");
             String colorInput = scanner.nextLine().trim().toUpperCase();
             String playerColor;
             if (colorInput.equals("W")) {
                 playerColor = "WHITE";
             } else if (colorInput.equals("B")) {
                 playerColor = "BLACK";
-            } else if (colorInput.equals("V")) {
-                playerColor = null;
             } else {
                 System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid color choice" + EscapeSequences.RESET_TEXT_COLOR);
                 return;
             }
 
-            if (playerColor != null) {
-                JoinGameRequest joinReq = new model.JoinGameRequest(playerColor, selectedGame.gameID());
-                facade.joinGame(joinReq, authToken);
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN +
-                        "You will be playing as " +
-                        playerColor +
-                        "!" +
-                        EscapeSequences.RESET_TEXT_COLOR);
-            }
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Joined game!" + EscapeSequences.RESET_TEXT_COLOR);
+            JoinGameRequest joinReq = new model.JoinGameRequest(playerColor, selectedGame.gameID());
+            facade.joinGame(joinReq, authToken);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "You will be playing as " +
+                    playerColor +
+                    "!" +
+                    EscapeSequences.RESET_TEXT_COLOR);
             displayGameBoard(selectedGame, playerColor);
 
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Join Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+        }
+    }
+
+    private void observeGame() {
+        try {
+            listGames();
+
+            System.out.print(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Enter Game Number to View (0 to cancel): " + EscapeSequences.RESET_TEXT_COLOR);
+            String input = scanner.nextLine().trim();
+            int gameNum;
+            try {
+                gameNum = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid Input");
+                return;
+            }
+
+            if (gameNum == 0) {
+                System.out.println("Cancelled");
+                return;
+            }
+
+            ListGamesResult result = fetchGames();
+            java.util.List<model.GameData> gameList = new java.util.ArrayList<>(result.games());
+            if(gameNum < 1 || gameNum > gameList.size()) {
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid Game Number");
+                return;
+            }
+            GameData selectedGame = gameList.get(gameNum-1);
+
+            displayGameBoard(selectedGame, null); // null = viewer (white's perspective)
+
+        } catch (ServerException e) {
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "View Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
         }
     }
 
