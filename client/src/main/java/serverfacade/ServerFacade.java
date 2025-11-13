@@ -119,4 +119,6 @@ public class ServerFacade {
     public void joinGame(JoinGameRequest request, String authToken) throws ServerException {
         put("/game", request, Void.class, authToken);
     }
+
+    
 }
