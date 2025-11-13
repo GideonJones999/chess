@@ -64,11 +64,7 @@ public class GameplayUI {
         printBoard(board, whiteOnBottom);
     }
 
-    private void printBoard(chess.ChessBoard board, boolean whiteOnBottom) {
-        int startRank = whiteOnBottom ? 8 : 1;
-        int endRank = whiteOnBottom ? 1 : 8;
-        int rankStep = whiteOnBottom ? -1 : 1;
-
+    private void printFileLabel(boolean whiteOnBottom) {
         System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + "    ");
         for (int fileIdx = 1; fileIdx <= 8; fileIdx++) {
             int actualFile = whiteOnBottom ? fileIdx : 9 - fileIdx;
@@ -77,7 +73,14 @@ public class GameplayUI {
             if(fileIdx == 1 || fileIdx == 2 || fileIdx == 4 || fileIdx == 6 || fileIdx == 7) {System.out.print(" ");}
         }
         System.out.println("  "+EscapeSequences.RESET_BG_COLOR);
+    }
 
+    private void printBoard(chess.ChessBoard board, boolean whiteOnBottom) {
+        int startRank = whiteOnBottom ? 8 : 1;
+        int endRank = whiteOnBottom ? 1 : 8;
+        int rankStep = whiteOnBottom ? -1 : 1;
+
+        printFileLabel(whiteOnBottom);
         // Print board rows
         for (int rank = startRank; rank != endRank + rankStep; rank += rankStep) {
             System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + " " + rank + " " + EscapeSequences.RESET_BG_COLOR);
@@ -99,14 +102,7 @@ public class GameplayUI {
             System.out.println();
         }
 
-        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + "    ");
-        for (int fileIdx = 1; fileIdx <= 8; fileIdx++) {
-            int actualFile = whiteOnBottom ? fileIdx : 9 - fileIdx;
-            char fileLetter = (char) ('A' + actualFile - 1);
-            System.out.printf(fileLetter+"  ");
-            if(fileIdx == 1 || fileIdx == 2 || fileIdx == 4 || fileIdx == 6 || fileIdx == 7) {System.out.print(" ");}
-        }
-        System.out.println("  "+EscapeSequences.RESET_BG_COLOR);
+        printFileLabel(whiteOnBottom);
     }
 
     private String getPieceSymbol(chess.ChessPiece piece) {
