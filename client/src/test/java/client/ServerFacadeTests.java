@@ -5,7 +5,6 @@ import server.Server;
 import serverfacade.ServerException;
 import serverfacade.ServerFacade;
 
-import javax.sql.rowset.serial.SerialException;
 import java.util.UUID;
 
 public class ServerFacadeTests {
@@ -98,12 +97,10 @@ public class ServerFacadeTests {
         model.RegisterRequest regReq = new model.RegisterRequest(username, password, username+"@example.com");
         facade.register(regReq);
 
-        // wrong password
         model.LoginRequest bad = new model.LoginRequest(username, "wrongpass");
         serverfacade.ServerException ex = Assertions.assertThrows(serverfacade.ServerException.class, () -> {
             facade.login(bad);
         });
-        // server maps unauthorized -> 401
         Assertions.assertTrue(ex.getStatusCode() == 401);
     }
 
@@ -156,11 +153,9 @@ public class ServerFacadeTests {
         model.LoginRequest loginReq = new model.LoginRequest(username, password);
         model.LoginResult loginRes = facade.login(loginReq);
 
-        // Create a couple games
         facade.createGame("Game1", loginRes.authToken());
         facade.createGame("Game2", loginRes.authToken());
 
-        // List games
         model.ListGamesResult result = facade.listGames(loginRes.authToken());
 
         Assertions.assertNotNull(result);
@@ -287,7 +282,6 @@ public class ServerFacadeTests {
     public void testLogoutUnauthorized() throws Exception {
         ServerFacade facade = new ServerFacade(port);
 
-        // Try to logout without auth token
         serverfacade.ServerException ex = Assertions.assertThrows(serverfacade.ServerException.class, () -> {
             facade.logout(null);
         });
