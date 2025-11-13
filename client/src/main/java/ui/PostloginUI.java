@@ -88,33 +88,37 @@ public class PostloginUI {
         }
     }
 
+    private GameData selectGame() throws ServerException {
+        listGames();
+
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Enter Game Number to Join (0 to cancel): " + EscapeSequences.RESET_TEXT_COLOR);
+        String input = scanner.nextLine().trim();
+        int gameNum;
+        try {
+            gameNum = Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Input");
+            return null;
+        }
+
+        if (gameNum == 0) {
+            System.out.println("Cancelled");
+            return null;
+        }
+
+        ListGamesResult result = fetchGames();
+        java.util.List<model.GameData> gameList = new java.util.ArrayList<>(result.games());
+        if(gameNum < 1 || gameNum > gameList.size()) {
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid Game Number");
+            return null;
+        }
+        return gameList.get(gameNum-1);
+    }
+
     private void joinGame() {
         try {
-            listGames();
-
-            System.out.print(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Enter Game Number to Join (0 to cancel): " + EscapeSequences.RESET_TEXT_COLOR);
-            String input = scanner.nextLine().trim();
-            int gameNum;
-            try {
-                gameNum = Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid Input");
-                return;
-            }
-
-            if (gameNum == 0) {
-                System.out.println("Cancelled");
-                return;
-            }
-
-            ListGamesResult result = fetchGames();
-            java.util.List<model.GameData> gameList = new java.util.ArrayList<>(result.games());
-            if(gameNum < 1 || gameNum > gameList.size()) {
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid Game Number");
-                return;
-            }
-            GameData selectedGame = gameList.get(gameNum-1);
-
+            GameData selectedGame = selectGame();
+            if (selectedGame == null) {return;}
             System.out.println("Join as (W)hite or (B)lack?");
             String colorInput = scanner.nextLine().trim().toUpperCase();
             String playerColor;
@@ -141,33 +145,9 @@ public class PostloginUI {
 
     private void observeGame() {
         try {
-            listGames();
-
-            System.out.print(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Enter Game Number to View (0 to cancel): " + EscapeSequences.RESET_TEXT_COLOR);
-            String input = scanner.nextLine().trim();
-            int gameNum;
-            try {
-                gameNum = Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid Input");
-                return;
-            }
-
-            if (gameNum == 0) {
-                System.out.println("Cancelled");
-                return;
-            }
-
-            ListGamesResult result = fetchGames();
-            java.util.List<model.GameData> gameList = new java.util.ArrayList<>(result.games());
-            if(gameNum < 1 || gameNum > gameList.size()) {
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid Game Number");
-                return;
-            }
-            GameData selectedGame = gameList.get(gameNum-1);
-
+            GameData selectedGame = selectGame();
+            if (selectedGame == null) {return;}
             new GameplayUI(selectedGame, null).run(); // null = viewer (white's perspective)
-
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "View Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
         }

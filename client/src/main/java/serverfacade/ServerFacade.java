@@ -21,8 +21,8 @@ public class ServerFacade {
         this.serverUrl = url;
     }
 
-    static final HttpClient httpClient = HttpClient.newHttpClient();
-    static final Gson gson = new Gson();
+    static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    static final Gson GSON = new Gson();
 
     private <R> R makeRequest(String method, String endpoint, Object reqBody, Class<R> responseType, String authToken)
             throws ServerException {
@@ -37,7 +37,7 @@ public class ServerFacade {
             }
 
             if (reqBody != null) {
-                String jsonBody = gson.toJson(reqBody);
+                String jsonBody = GSON.toJson(reqBody);
                 requestBuilder.header("Content-Type", "application/json").method(method,
                         HttpRequest.BodyPublishers.ofString(jsonBody));
             } else {
@@ -49,7 +49,7 @@ public class ServerFacade {
                 }
             }
             HttpRequest request = requestBuilder.build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
             int statusCode = response.statusCode();
             String responseBody = response.body() == null ? "" : response.body().trim();
@@ -59,7 +59,7 @@ public class ServerFacade {
                     return null;
                 }
                 try {
-                    return gson.fromJson(responseBody, responseType);
+                    return GSON.fromJson(responseBody, responseType);
                 } catch (JsonSyntaxException e) {
                     if (responseType == String.class) {
                         return responseType.cast(responseBody);
@@ -120,5 +120,5 @@ public class ServerFacade {
         put("/game", request, Void.class, authToken);
     }
 
-    
+
 }
