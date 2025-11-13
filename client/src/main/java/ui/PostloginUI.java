@@ -133,8 +133,7 @@ public class PostloginUI {
                     playerColor +
                     "!" +
                     EscapeSequences.RESET_TEXT_COLOR);
-            displayGameBoard(selectedGame, playerColor);
-
+            new GameplayUI(selectedGame, playerColor).run();
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Join Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
         }
@@ -167,7 +166,7 @@ public class PostloginUI {
             }
             GameData selectedGame = gameList.get(gameNum-1);
 
-            displayGameBoard(selectedGame, null); // null = viewer (white's perspective)
+            new GameplayUI(selectedGame, null).run(); // null = viewer (white's perspective)
 
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "View Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
@@ -181,89 +180,5 @@ public class PostloginUI {
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Logout failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
         }
-    }
-
-    private void displayGameBoard(model.GameData game, String playerColor) {
-        if (game.game() == null) {
-            System.out.println("That Game Hasn't Started Yet");
-            return;
-        }
-
-        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_YELLOW + "=== Game Board ===" + EscapeSequences.RESET_TEXT_COLOR);
-        boolean whiteOnBottom = playerColor == null || playerColor.equals("WHITE");
-
-        chess.ChessBoard board = game.game().getBoard();
-        printBoard(board, whiteOnBottom);
-    }
-
-    private void printBoard(chess.ChessBoard board, boolean whiteOnBottom) {
-        int startRank = whiteOnBottom ? 8 : 1;
-        int endRank = whiteOnBottom ? 1 : 8;
-        int rankStep = whiteOnBottom ? -1 : 1;
-
-        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + "    ");
-        for (int fileIdx = 1; fileIdx <= 8; fileIdx++) {
-            int actualFile = whiteOnBottom ? fileIdx : 9 - fileIdx;
-            char fileLetter = (char) ('A' + actualFile - 1);
-            System.out.printf(fileLetter+"  ");
-            if(fileIdx == 1 || fileIdx == 2 || fileIdx == 4 || fileIdx == 6 || fileIdx == 7) {System.out.print(" ");}
-        }
-        System.out.println("  "+EscapeSequences.RESET_BG_COLOR);
-
-        // Print board rows
-        for (int rank = startRank; rank != endRank + rankStep; rank += rankStep) {
-            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + " " + rank + " " + EscapeSequences.RESET_BG_COLOR);
-
-            for (int fileIdx = 1; fileIdx <= 8; fileIdx++) {
-                int actualFile = whiteOnBottom ? fileIdx : 9 - fileIdx;
-                chess.ChessPiece piece = board.getPiece(new chess.ChessPosition(rank, actualFile));
-                boolean isLightSquare = (rank + actualFile) % 2 == 0;
-                String squareColor = isLightSquare ?
-                        EscapeSequences.SET_BG_COLOR_LIGHT_GREY :
-                        EscapeSequences.SET_BG_COLOR_DARK_GREY;
-                if (piece == null) {
-                    System.out.print(squareColor + EscapeSequences.EMPTY + EscapeSequences.RESET_BG_COLOR);
-                } else {
-                    System.out.print(squareColor + getPieceSymbol(piece) + EscapeSequences.RESET_BG_COLOR);
-                }
-            }
-            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + " " + rank + " " + EscapeSequences.RESET_BG_COLOR);
-            System.out.println();
-        }
-
-        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + "    ");
-        for (int fileIdx = 1; fileIdx <= 8; fileIdx++) {
-            int actualFile = whiteOnBottom ? fileIdx : 9 - fileIdx;
-            char fileLetter = (char) ('A' + actualFile - 1);
-            System.out.printf(fileLetter+"  ");
-            if(fileIdx == 1 || fileIdx == 2 || fileIdx == 4 || fileIdx == 6 || fileIdx == 7) {System.out.print(" ");}
-        }
-        System.out.println("  "+EscapeSequences.RESET_BG_COLOR);
-    }
-
-    private String getPieceSymbol(chess.ChessPiece piece) {
-        String symbol = "";
-        if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            symbol = switch (piece.getPieceType()) {
-                case KING -> EscapeSequences.WHITE_KING;
-                case QUEEN -> EscapeSequences.WHITE_QUEEN;
-                case ROOK -> EscapeSequences.WHITE_ROOK;
-                case BISHOP -> EscapeSequences.WHITE_BISHOP;
-                case KNIGHT -> EscapeSequences.WHITE_KNIGHT;
-                case PAWN -> EscapeSequences.WHITE_PAWN;
-            };
-        } else {
-            symbol = EscapeSequences.SET_TEXT_COLOR_BLACK;
-            symbol += switch (piece.getPieceType()) {
-                case KING -> EscapeSequences.BLACK_KING;
-                case QUEEN -> EscapeSequences.BLACK_QUEEN;
-                case ROOK -> EscapeSequences.BLACK_ROOK;
-                case BISHOP -> EscapeSequences.BLACK_BISHOP;
-                case KNIGHT -> EscapeSequences.BLACK_KNIGHT;
-                case PAWN -> EscapeSequences.BLACK_PAWN;
-            };
-            symbol += EscapeSequences.RESET_TEXT_COLOR;
-        }
-        return symbol;
     }
 }

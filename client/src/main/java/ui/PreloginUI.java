@@ -63,9 +63,7 @@ public class PreloginUI {
             loginWithCredentials(result.username(), password);
         } catch (ServerException e) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Registration failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
-            return;
         }
-        loginUser();
     }
 
     private void loginUser() {
