@@ -2,7 +2,7 @@ package server.websocket;
 
 import io.javalin.websocket.WsContext;
 import com.google.gson.Gson;
-import dataaccess.MySQLDataAccess;   // your DAO interface
+import dataaccess.DataAccess;   // your DAO interface
 import model.GameData;
 import websocket.UserGameCommand;
 import websocket.messages.ServerMessage;
@@ -15,9 +15,9 @@ public class WebSocketHandler {
     private static final Map<Integer, Set<WsContext>> gameConnections = new ConcurrentHashMap<>();
     private static final Map<WsContext, String> users = new ConcurrentHashMap<>();
     private static final Gson gson = new Gson();
-    private static MySQLDataAccess dao;
+    private static DataAccess dao;
 
-    public static void initialize(MySQLDataAccess dataAccess) {
+    public static void initialize(DataAccess dataAccess) {
         dao = dataAccess;
     }
 

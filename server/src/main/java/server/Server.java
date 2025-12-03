@@ -53,6 +53,7 @@ public class Server {
         listGamesService = new ListGamesService(dataAccess);
         createGameService = new CreateGameService(dataAccess);
         joinGameService = new JoinGameService(dataAccess);
+        WebSocketHandler.initialize(dataAccess);
 
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
@@ -76,7 +77,6 @@ public class Server {
         // Register Exception Handlers Here
         javalin.exception(DataAccessException.class, this::handleDataAccessException);
         javalin.exception(Exception.class, this::handleException);
-        WebSocketHandler.initialize(dataAccessObject);
     }
 
     private void handleClear(Context ctx) throws Exception {

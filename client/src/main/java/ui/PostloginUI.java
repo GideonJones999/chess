@@ -1,4 +1,5 @@
 package ui;
+
 import chess.ChessGame;
 import serverfacade.ServerFacade;
 import serverfacade.ServerException;
@@ -39,7 +40,8 @@ public class PostloginUI {
     }
 
     private void displayMenu() {
-        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_WHITE + "♕ Chess - Logged in as " + username + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_WHITE + "♕ Chess - Logged in as " + username
+                + EscapeSequences.RESET_TEXT_COLOR);
         System.out.println("1. List Games");
         System.out.println("2. Create Game");
         System.out.println("3. Join Game");
@@ -58,9 +60,11 @@ public class PostloginUI {
 
         try {
             model.CreateGameResult result = facade.createGame(name, authToken);
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Created Game with ID: " + result.gameID() + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Created Game with ID: " + result.gameID()
+                    + EscapeSequences.RESET_TEXT_COLOR);
         } catch (ServerException e) {
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Create game failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Create game failed: " + e.getMessage()
+                    + EscapeSequences.RESET_TEXT_COLOR);
         }
     }
 
@@ -72,11 +76,13 @@ public class PostloginUI {
         try {
             ListGamesResult result = fetchGames();
             if (result.games() == null || result.games().isEmpty()) {
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "No Games Available." + EscapeSequences.RESET_TEXT_COLOR);
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "No Games Available."
+                        + EscapeSequences.RESET_TEXT_COLOR);
             } else {
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "\n=== Games ===" + EscapeSequences.RESET_TEXT_COLOR);
+                System.out.println(
+                        EscapeSequences.SET_TEXT_COLOR_YELLOW + "\n=== Games ===" + EscapeSequences.RESET_TEXT_COLOR);
                 int index = 1;
-                for (model.GameData game: result.games()) {
+                for (model.GameData game : result.games()) {
                     String white = game.whiteUsername() != null ? game.whiteUsername() : "OPEN";
                     String black = game.blackUsername() != null ? game.blackUsername() : "OPEN";
                     System.out.printf("%d. %s |  White: %s | Black: %s%n", index, game.gameName(), white, black);
@@ -84,14 +90,16 @@ public class PostloginUI {
                 }
             }
         } catch (ServerException e) {
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "List Games Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "List Games Failed: " + e.getMessage()
+                    + EscapeSequences.RESET_TEXT_COLOR);
         }
     }
 
     private GameData selectGame() throws ServerException {
         listGames();
 
-        System.out.print(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Enter Game Number to Join (0 to cancel): " + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Enter Game Number to Join (0 to cancel): "
+                + EscapeSequences.RESET_TEXT_COLOR);
         String input = scanner.nextLine().trim();
         int gameNum;
         try {
@@ -108,17 +116,19 @@ public class PostloginUI {
 
         ListGamesResult result = fetchGames();
         java.util.List<model.GameData> gameList = new java.util.ArrayList<>(result.games());
-        if(gameNum < 1 || gameNum > gameList.size()) {
+        if (gameNum < 1 || gameNum > gameList.size()) {
             System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid Game Number");
             return null;
         }
-        return gameList.get(gameNum-1);
+        return gameList.get(gameNum - 1);
     }
 
     private void joinGame() {
         try {
             GameData selectedGame = selectGame();
-            if (selectedGame == null) {return;}
+            if (selectedGame == null) {
+                return;
+            }
             System.out.println("Join as (W)hite or (B)lack?");
             String colorInput = scanner.nextLine().trim().toUpperCase();
             String playerColor;
@@ -127,7 +137,8 @@ public class PostloginUI {
             } else if (colorInput.equals("B")) {
                 playerColor = "BLACK";
             } else {
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Invalid color choice" + EscapeSequences.RESET_TEXT_COLOR);
+                System.out.println(
+                        EscapeSequences.SET_TEXT_COLOR_RED + "Invalid color choice" + EscapeSequences.RESET_TEXT_COLOR);
                 return;
             }
 
@@ -137,28 +148,34 @@ public class PostloginUI {
                     playerColor +
                     "!" +
                     EscapeSequences.RESET_TEXT_COLOR);
-            new GameplayUI(selectedGame, playerColor).run();
+            new GameplayUI(selectedGame, playerColor, facade, authToken).run();
         } catch (ServerException e) {
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Join Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Join Game Failed: " + e.getMessage()
+                    + EscapeSequences.RESET_TEXT_COLOR);
         }
     }
 
     private void observeGame() {
         try {
             GameData selectedGame = selectGame();
-            if (selectedGame == null) {return;}
-            new GameplayUI(selectedGame, null).run(); // null = viewer (white's perspective)
+            if (selectedGame == null) {
+                return;
+            }
+            new GameplayUI(selectedGame, null, facade, authToken).run(); // null = viewer (white's perspective)
         } catch (ServerException e) {
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "View Game Failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "View Game Failed: " + e.getMessage()
+                    + EscapeSequences.RESET_TEXT_COLOR);
         }
     }
 
     private void logout() {
         try {
             facade.logout(authToken);
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Logged out successfully!" + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "Logged out successfully!"
+                    + EscapeSequences.RESET_TEXT_COLOR);
         } catch (ServerException e) {
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Logout failed: " + e.getMessage() + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Logout failed: " + e.getMessage()
+                    + EscapeSequences.RESET_TEXT_COLOR);
         }
     }
 }

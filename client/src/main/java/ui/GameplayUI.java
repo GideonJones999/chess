@@ -1,6 +1,11 @@
 package ui;
+
 import chess.ChessGame;
 import model.*;
+import serverfacade.ServerFacade;
+import serverfacade.WebSocketClient;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import java.util.Locale;
 import java.util.Scanner;
@@ -9,35 +14,92 @@ public class GameplayUI {
     private final GameData game;
     private final String playerColor;
     private final Scanner scanner;
+    private final ServerFacade facade;
+    private final String authToken;
+    private WebSocketClient webSocketClient;
+    private boolean connected = false;
 
-    public GameplayUI(GameData game, String playerColor) {
+    public GameplayUI(GameData game, String playerColor, ServerFacade facade, String authToken) {
         this.game = game;
         this.playerColor = playerColor;
         this.scanner = new Scanner(System.in);
+        this.facade = facade;
+        this.authToken = authToken;
     }
 
     public void run() {
-        displayGameBoard();
+        try {
+            webSocketClient = new WebSocketClient("http://localhost:8080", this::handleServerMessage);
+            webSocketClient.connect(authToken, game.gameID());
+            connected = true;
 
-        boolean inGame = true;
-        while(inGame) {
-            displayGameMenu();
-            String choice = scanner.nextLine().trim().toLowerCase();
-            switch (choice) {
-                case "1", "r", "redraw" -> displayGameBoard();
-                case "2", "h", "help" -> displayHelp();
-                case "3", "l", "leave" -> {
-                    System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Leaving Game..."+EscapeSequences.RESET_TEXT_COLOR);
-                    inGame = false;
+            UserGameCommand connectCmd = new UserGameCommand(
+                    UserGameCommand.CommandType.CONNECT,
+                    authToken,
+                    game.gameID());
+            webSocketClient.sendCommand(connectCmd);
+            displayGameBoard();
+
+            boolean inGame = true;
+            while (inGame) {
+                displayGameMenu();
+                String choice = scanner.nextLine().trim().toLowerCase();
+                switch (choice) {
+                    case "1", "r", "redraw" -> displayGameBoard();
+                    case "2", "h", "help" -> displayHelp();
+                    case "3", "l", "leave" -> {
+                        System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Leaving Game..."
+                                + EscapeSequences.RESET_TEXT_COLOR);
+                        inGame = false;
+                    }
+                    default -> System.out.println("Invalid Choice. Type 'help' for options");
                 }
-                default -> System.out.println("Invalid Choice. Type 'help' for options");
+            }
+        } catch (Exception e) {
+            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Error: " + e.getMessage()
+                    + EscapeSequences.RESET_TEXT_COLOR);
+        } finally {
+            if (webSocketClient != null && connected) {
+                webSocketClient.disconnect();
             }
         }
     }
 
+    @Override
+    public void onMessage(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case LOAD_GAME -> {
+                System.out.println(
+                        EscapeSequences.SET_TEXT_COLOR_YELLOW + "\n[Game Updated]" + EscapeSequences.RESET_TEXT_COLOR);
+                displayGameBoard();
+            }
+            case NOTIFICATION -> {
+                System.out.println(
+                        EscapeSequences.SET_TEXT_COLOR_YELLOW + "\n[Notification]" + EscapeSequences.RESET_TEXT_COLOR);
+            }
+            case ERROR -> {
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "\n[Error]" + EscapeSequences.RESET_TEXT_COLOR);
+            }
+        }
+    }
+
+    @Override
+    public void onError(String errorMessage) {
+        System.out.println(
+                EscapeSequences.SET_TEXT_COLOR_RED + "Error: " + errorMessage + EscapeSequences.RESET_TEXT_COLOR);
+    }
+
+    @Override
+    public void onClose() {
+        System.out.println(
+                EscapeSequences.SET_TEXT_COLOR_YELLOW + "Disconnected from game" + EscapeSequences.RESET_TEXT_COLOR);
+        connected = false;
+    }
+
     private void displayGameMenu() {
         String role = playerColor != null ? "Playing as " + playerColor : "Observing";
-        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_WHITE + "♕ " + game.gameName() + " - " + role + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_WHITE + "♕ " + game.gameName() + " - " + role
+                + EscapeSequences.RESET_TEXT_COLOR);
         System.out.println("1. Redraw Board");
         System.out.println("2. Help");
         System.out.println("3. Leave Game");
@@ -45,7 +107,8 @@ public class GameplayUI {
     }
 
     private void displayHelp() {
-        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_YELLOW + "=== Gameplay Help ===" + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_YELLOW + "=== Gameplay Help ==="
+                + EscapeSequences.RESET_TEXT_COLOR);
         System.out.println("Redraw - Refresh the chess board display");
         System.out.println("Help - Show this help message");
         System.out.println("Leave - Exit the game and return to main menu");
@@ -53,11 +116,13 @@ public class GameplayUI {
     }
 
     private void displayGameBoard() {
-        if(game.game() == null) {
-            System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + "Game has not started yet" + EscapeSequences.RESET_TEXT_COLOR);
+        if (game.game() == null) {
+            System.out.println(
+                    EscapeSequences.SET_TEXT_COLOR_RED + "Game has not started yet" + EscapeSequences.RESET_TEXT_COLOR);
             return;
         }
-        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_YELLOW + "=== " + game.gameName() + " ===" + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.println("\n" + EscapeSequences.SET_TEXT_COLOR_YELLOW + "=== " + game.gameName() + " ==="
+                + EscapeSequences.RESET_TEXT_COLOR);
         boolean whiteOnBottom = playerColor == null || playerColor.equals("WHITE");
 
         chess.ChessBoard board = game.game().getBoard();
@@ -69,10 +134,12 @@ public class GameplayUI {
         for (int fileIdx = 1; fileIdx <= 8; fileIdx++) {
             int actualFile = whiteOnBottom ? fileIdx : 9 - fileIdx;
             char fileLetter = (char) ('A' + actualFile - 1);
-            System.out.printf(fileLetter+"  ");
-            if(fileIdx == 1 || fileIdx == 2 || fileIdx == 4 || fileIdx == 6 || fileIdx == 7) {System.out.print(" ");}
+            System.out.printf(fileLetter + "  ");
+            if (fileIdx == 1 || fileIdx == 2 || fileIdx == 4 || fileIdx == 6 || fileIdx == 7) {
+                System.out.print(" ");
+            }
         }
-        System.out.println("  "+EscapeSequences.RESET_BG_COLOR);
+        System.out.println("  " + EscapeSequences.RESET_BG_COLOR);
     }
 
     private void printBoard(chess.ChessBoard board, boolean whiteOnBottom) {
@@ -83,22 +150,23 @@ public class GameplayUI {
         printFileLabel(whiteOnBottom);
         // Print board rows
         for (int rank = startRank; rank != endRank + rankStep; rank += rankStep) {
-            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + " " + rank + " " + EscapeSequences.RESET_BG_COLOR);
+            System.out
+                    .print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + " " + rank + " " + EscapeSequences.RESET_BG_COLOR);
 
             for (int fileIdx = 1; fileIdx <= 8; fileIdx++) {
                 int actualFile = whiteOnBottom ? fileIdx : 9 - fileIdx;
                 chess.ChessPiece piece = board.getPiece(new chess.ChessPosition(rank, actualFile));
                 boolean isLightSquare = (rank + actualFile) % 2 == 0;
-                String squareColor = isLightSquare ?
-                        EscapeSequences.SET_BG_COLOR_LIGHT_GREY :
-                        EscapeSequences.SET_BG_COLOR_DARK_GREY;
+                String squareColor = isLightSquare ? EscapeSequences.SET_BG_COLOR_LIGHT_GREY
+                        : EscapeSequences.SET_BG_COLOR_DARK_GREY;
                 if (piece == null) {
                     System.out.print(squareColor + EscapeSequences.EMPTY + EscapeSequences.RESET_BG_COLOR);
                 } else {
                     System.out.print(squareColor + getPieceSymbol(piece) + EscapeSequences.RESET_BG_COLOR);
                 }
             }
-            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + " " + rank + " " + EscapeSequences.RESET_BG_COLOR);
+            System.out
+                    .print(EscapeSequences.SET_BG_COLOR_DARK_GREEN + " " + rank + " " + EscapeSequences.RESET_BG_COLOR);
             System.out.println();
         }
 
