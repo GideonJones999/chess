@@ -13,6 +13,7 @@ import dataaccess.MemoryDataAccess;
 
 // Services
 import io.javalin.json.JavalinGson;
+import server.websocket.WebSocketHandler;
 import service.auth.*;
 import service.game.*;
 import service.utils.ClearService;
@@ -66,10 +67,16 @@ public class Server {
         javalin.post("/game", this::handleCreateGame);
         javalin.get("/game", this::handleListGames);
         javalin.put("/game", this::handleJoinGame);
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(ctx -> WebSocketHandler.connect(ctx));
+            ws.onClose(ctx -> WebSocketHandler.disconnect(ctx));
+            ws.onMessage(ctx -> WebSocketHandler.recieve(ctx));
+        });
 
         // Register Exception Handlers Here
         javalin.exception(DataAccessException.class, this::handleDataAccessException);
         javalin.exception(Exception.class, this::handleException);
+        WebSocketHandler.initialize(dataAccessObject);
     }
 
     private void handleClear(Context ctx) throws Exception {
