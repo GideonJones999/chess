@@ -10,7 +10,7 @@ import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletionStage;
 
-public class WebSocketClient extends WebSocket.Listener {
+public class WebSocketClient implements WebSocket.Listener {
   private WebSocket webSocket;
   private final Gson gson = new Gson();
   private final WebSocketMessageHandler messageHandler;
@@ -73,8 +73,9 @@ public class WebSocketClient extends WebSocket.Listener {
   }
 
   @Override
-  public void onClose(WebSocket webSocket, int statusCode, String reason) {
+  public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
     System.out.println("WebSocket closed: " + reason);
     messageHandler.onClose();
+    return null;
   }
 }

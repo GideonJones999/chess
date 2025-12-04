@@ -44,7 +44,7 @@ public class Server {
                 dataAccess = new MemoryDataAccess();
             }
         } catch (DataAccessException e) {
-            throw new RuntimeException("Failed to init database: "+e.getMessage());
+            throw new RuntimeException("Failed to init database: " + e.getMessage());
         }
         clearService = new ClearService(dataAccess);
         registerService = new RegisterService(dataAccess);
@@ -142,7 +142,8 @@ public class Server {
             gameID = (Integer) gameIDObj;
         } else {
             throw new DataAccessException("Error: bad request");
-        }        JoinGameRequest request = new JoinGameRequest(authToken, playerColor, gameID);
+        }
+        JoinGameRequest request = new JoinGameRequest(authToken, playerColor, gameID);
         joinGameService.joinGame(request);
         ctx.status(200);
         ctx.json("{}");
@@ -163,7 +164,7 @@ public class Server {
 
     private void handleException(Exception e, Context ctx) {
         ctx.status(500);
-        ctx.json(Map.of("message", "Error: "+e.getMessage()));
+        ctx.json(Map.of("message", "Error: " + e.getMessage()));
     }
 
     public int run(int desiredPort) {
