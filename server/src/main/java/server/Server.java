@@ -13,7 +13,8 @@ import dataaccess.MemoryDataAccess;
 
 // Services
 import io.javalin.json.JavalinGson;
-import server.websocket.WebSocketHandler;
+import io.javalin.Javalin;
+import websocket.ChessWebSocketHandler;
 import service.auth.*;
 import service.game.*;
 import service.utils.ClearService;
@@ -53,12 +54,12 @@ public class Server {
         listGamesService = new ListGamesService(dataAccess);
         createGameService = new CreateGameService(dataAccess);
         joinGameService = new JoinGameService(dataAccess);
-        WebSocketHandler.initialize(dataAccess);
-
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
             config.jsonMapper(new JavalinGson());
         });
+        ChessWebSocketHandler wsHandler = new ChessWebSocketHandler(dataAccess);
+        wsHandler.configure(app);
 
         // Register Endpoints Here
         javalin.delete("/db", this::handleClear);
@@ -68,11 +69,6 @@ public class Server {
         javalin.post("/game", this::handleCreateGame);
         javalin.get("/game", this::handleListGames);
         javalin.put("/game", this::handleJoinGame);
-        javalin.ws("/ws", ws -> {
-            ws.onConnect(ctx -> WebSocketHandler.connect(ctx));
-            ws.onClose(ctx -> WebSocketHandler.disconnect(ctx));
-            ws.onMessage(ctx -> WebSocketHandler.recieve(ctx));
-        });
 
         // Register Exception Handlers Here
         javalin.exception(DataAccessException.class, this::handleDataAccessException);
