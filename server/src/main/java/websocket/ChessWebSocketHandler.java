@@ -1,5 +1,7 @@
 package websocket;
 
+import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -12,6 +14,7 @@ import websocket.commands.*;
 import websocket.messages.*;
 
 import javax.xml.crypto.Data;
+import java.nio.channels.Channel;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,6 +62,30 @@ public class ChessWebSocketHandler {
         } catch (Exception e) {
             sendError(ctx, "Error: " + e.getMessage());
         }
+    }
+
+    private void handleMakeMove(WsMessageContext ctx, MakeMoveCommand cmd) throws DataAccessException {
+        AuthData auth = reqAuth(cmd.getAuthToken());
+        GameData gameData = reqGame(cmd.getGameID());
+        ChessGame game = gameData.game();
+        ChessMove move = cmd.getMove();
+
+        try {
+            game.makeMove(move);
+        } catch (Exception e) {
+            sendError(ctx, "Error: Illegal Move");
+            return;
+        }
+
+        dataAccess.updateGame(new GameData(
+                gameData.gameID(),
+                gameData.whiteUsername(),
+                gameData.blackUsername(),
+                gameData.gameName(),
+                game
+        ));
+        broadcastToAll(gameData.gameID(), new LoadGameMessage(game));
+        broadcastToOthers(gameData.gameID(), ctx, new NotificationMessage(auth.username() + " moved " + move));
     }
 
     private void handleConnect(WsMessageContext ctx, UserGameCommand cmd) throws DataAccessException {
