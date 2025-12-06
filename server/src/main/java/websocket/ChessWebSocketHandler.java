@@ -88,6 +88,21 @@ public class ChessWebSocketHandler {
         return game;
     }
 
+    private String determineRole(String username, GameData gameData) {
+        if (username.equals(gameData.whiteUsername())) return "white";
+        if (username.equals(gameData.blackUsername())) return "black";
+        return "observer";
+    }
+
+    private void broadcastToOthers(int gameID, WsMessageContext sender, ServerMessage message) {
+        var clients = gameConnections.get(gameID);
+        if (clients == null) return;
+        String json = gson.toJson(message);
+        clients.stream()
+                .filter(c -> !c.getSessionId().equals(sender.getSessionId()))
+                .forEach(c -> c.send(json));
+    }
+
 
     private void sendError(WsMessageContext ctx, String errorText) {
         if (!errorText.toLowerCase().contains("error")) {
