@@ -59,7 +59,7 @@ public class Server {
             config.jsonMapper(new JavalinGson());
         });
         ChessWebSocketHandler wsHandler = new ChessWebSocketHandler(dataAccess);
-        wsHandler.configure(app);
+        wsHandler.register(javalin);
 
         // Register Endpoints Here
         javalin.delete("/db", this::handleClear);

@@ -10,7 +10,7 @@ import websocket.messages.ServerMessage;
 import java.util.Locale;
 import java.util.Scanner;
 
-public class GameplayUI {
+public class GameplayUI implements WebSocketClient.WebSocketMessageHandler {
     private final GameData game;
     private final String playerColor;
     private final Scanner scanner;
@@ -29,7 +29,7 @@ public class GameplayUI {
 
     public void run() {
         try {
-            webSocketClient = new WebSocketClient("http://localhost:8080", this::handleServerMessage);
+            webSocketClient = new WebSocketClient("http://localhost:8080", this);
             webSocketClient.connect(authToken, game.gameID());
             connected = true;
 
