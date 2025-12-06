@@ -122,12 +122,35 @@ public class ChessWebSocketHandler {
     private void handleLeave(WsMessageContext ctx, UserGameCommand cmd) throws DataAccessException {
         AuthData auth = reqAuth(cmd.getAuthToken());
         GameData gameData = reqGame(cmd.getGameID());
+        String username = auth.username();
         int gameID = cmd.getGameID();
+
         Map<String, WsMessageContext> group = gameConnections.get(gameID);
-        if (group != null) {
-            group.remove(auth.username());
-            broadcastToOthers(gameID, ctx, new NotificationMessage(auth.username() + " left the game."));
+        if (group == null) {
+            System.out.println("No Group");
+            return;
         }
+        boolean removed = false;
+
+        for (var entry : group.entrySet()) {
+            WsMessageContext existingCtx = entry.getValue();
+            if (existingCtx.sessionId().equals(ctx.sessionId())) {
+                group.remove(entry.getKey()); // remove by the actual sessionId key
+                removed = true;
+                break;
+            }
+        }
+        String role = determineRole(username, gameData);
+
+        if (!removed) {
+            return;
+        }
+
+
+        System.out.println(role + " Pre-Broadcast");
+        broadcastToOthers(gameID, ctx, new NotificationMessage(username + "left the game."));
+        System.out.println(role + " Post-Broadcast");
+
         if (auth.username().equals(gameData.whiteUsername())) {
             dataAccess.updateGame(new GameData(
                     gameID,
