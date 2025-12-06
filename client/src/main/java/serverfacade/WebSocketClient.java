@@ -7,6 +7,7 @@ import websocket.messages.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public class WebSocketClient implements WebSocket.Listener {
@@ -17,7 +18,9 @@ public class WebSocketClient implements WebSocket.Listener {
 
   public interface WebSocketMessageHandler {
     void onMessage(ServerMessage message);
+
     void onError(String errorMessage);
+
     void onClose();
   }
 
@@ -53,29 +56,30 @@ public class WebSocketClient implements WebSocket.Listener {
     System.out.println("WebSocket connected");
   }
 
-    @Override
-    public CompletionStage<?> onText(WebSocket ws, String data, boolean last) {
-        try {
-            ServerMessage base = gson.fromJson(data, ServerMessage.class);
-            switch (base.getServerMessageType()) {
-                case LOAD_GAME -> {
-                    LoadGameMessage load = gson.fromJson(data, LoadGameMessage.class);
-                    messageHandler.onMessage(load);
-                }
-                case NOTIFICATION -> {
-                    NotificationMessage notif = gson.fromJson(data, NotificationMessage.class);
-                    messageHandler.onMessage(notif);
-                }
-                case ERROR -> {
-                    ErrorMessage err = gson.fromJson(data, ErrorMessage.class);
-                    messageHandler.onError(err.getErrorMessage());
-                }
-            }
-        } catch (Exception e) {
-            messageHandler.onError("Error: Failed to parse message -> " + e.getMessage());
+  @Override
+  public CompletionStage<?> onText(WebSocket ws, CharSequence data, boolean last) {
+    String str = data.toString();
+    try {
+      ServerMessage base = gson.fromJson(str, ServerMessage.class);
+      switch (base.getServerMessageType()) {
+        case LOAD_GAME -> {
+          LoadGameMessage load = gson.fromJson(str, LoadGameMessage.class);
+          messageHandler.onMessage(load);
         }
-        return null;
+        case NOTIFICATION -> {
+          NotificationMessage notif = gson.fromJson(str, NotificationMessage.class);
+          messageHandler.onMessage(notif);
+        }
+        case ERROR -> {
+          ErrorMessage err = gson.fromJson(str, ErrorMessage.class);
+          messageHandler.onError(err.getErrorMessage());
+        }
+      }
+    } catch (Exception e) {
+      messageHandler.onError("Error: Failed to parse message -> " + e.getMessage());
     }
+    return null;
+  }
 
   @Override
   public void onError(WebSocket webSocket, Throwable error) {
@@ -83,8 +87,9 @@ public class WebSocketClient implements WebSocket.Listener {
   }
 
   @Override
-  public void onClose(WebSocket webSocket, int statusCode, String reason) {
+  public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
     System.out.println("WebSocket closed: " + reason);
     messageHandler.onClose();
+    return CompletableFuture.completedFuture(null);
   }
 }
