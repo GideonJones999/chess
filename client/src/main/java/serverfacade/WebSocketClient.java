@@ -2,12 +2,11 @@ package serverfacade;
 
 import com.google.gson.Gson;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletionStage;
 
 public class WebSocketClient implements WebSocket.Listener {
@@ -18,9 +17,7 @@ public class WebSocketClient implements WebSocket.Listener {
 
   public interface WebSocketMessageHandler {
     void onMessage(ServerMessage message);
-
     void onError(String errorMessage);
-
     void onClose();
   }
 
@@ -30,7 +27,7 @@ public class WebSocketClient implements WebSocket.Listener {
   }
 
   public void connect(String authToken, int gameID) throws Exception {
-    String wsUrl = serverUrl.replace("http", "ws") + "/ws?token=" + authToken + "&gameID=" + gameID;
+    String wsUrl = serverUrl.replace("http", "ws") + "/ws";
 
     HttpClient httpClient = HttpClient.newHttpClient();
     this.webSocket = httpClient.newWebSocketBuilder()
@@ -47,7 +44,7 @@ public class WebSocketClient implements WebSocket.Listener {
 
   public void disconnect() {
     if (webSocket != null) {
-      webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "");
+      webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Client Disconnected");
     }
   }
 
@@ -56,16 +53,29 @@ public class WebSocketClient implements WebSocket.Listener {
     System.out.println("WebSocket connected");
   }
 
-  @Override
-  public CompletionStage<?> onText(WebSocket webSocket, String data, boolean last) {
-    try {
-      ServerMessage message = gson.fromJson(data, ServerMessage.class);
-      messageHandler.onMessage(message);
-    } catch (Exception e) {
-      messageHandler.onError("Failed to parse message: " + e.getMessage());
+    @Override
+    public CompletionStage<?> onText(WebSocket ws, String data, boolean last) {
+        try {
+            ServerMessage base = gson.fromJson(data, ServerMessage.class);
+            switch (base.getServerMessageType()) {
+                case LOAD_GAME -> {
+                    LoadGameMessage load = gson.fromJson(data, LoadGameMessage.class);
+                    messageHandler.onMessage(load);
+                }
+                case NOTIFICATION -> {
+                    NotificationMessage notif = gson.fromJson(data, NotificationMessage.class);
+                    messageHandler.onMessage(notif);
+                }
+                case ERROR -> {
+                    ErrorMessage err = gson.fromJson(data, ErrorMessage.class);
+                    messageHandler.onError(err.getErrorMessage());
+                }
+            }
+        } catch (Exception e) {
+            messageHandler.onError("Error: Failed to parse message -> " + e.getMessage());
+        }
+        return null;
     }
-    return null;
-  }
 
   @Override
   public void onError(WebSocket webSocket, Throwable error) {
@@ -73,9 +83,8 @@ public class WebSocketClient implements WebSocket.Listener {
   }
 
   @Override
-  public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+  public void onClose(WebSocket webSocket, int statusCode, String reason) {
     System.out.println("WebSocket closed: " + reason);
     messageHandler.onClose();
-    return null;
   }
 }
