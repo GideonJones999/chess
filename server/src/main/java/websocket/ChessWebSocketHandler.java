@@ -13,10 +13,7 @@ import model.GameData;
 import websocket.commands.*;
 import websocket.messages.*;
 
-import javax.xml.crypto.Data;
-import java.nio.channels.Channel;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChessWebSocketHandler {
@@ -34,8 +31,6 @@ public class ChessWebSocketHandler {
         app.ws("/ws", ws -> {
             ws.onMessage(this::onMessage);
             ws.onClose(this::onClose);
-            ws.onConnect(ctx -> {
-            });
         });
     }
 
@@ -71,6 +66,25 @@ public class ChessWebSocketHandler {
         ChessGame game = gameData.game();
         ChessMove move = cmd.getMove();
 
+        if (game.isGameOver()) {
+            sendError(ctx, "Game is already over.");
+            return;
+        }
+
+        String role = determineRole(auth.username(), gameData);
+        if (role.equals("observer")) {
+            sendError(ctx, "Observers cannot make moves.");
+            return;
+        }
+
+        ChessGame.TeamColor currentTurn = game.getTeamTurn();
+        if ((currentTurn == ChessGame.TeamColor.WHITE && !role.equals("white")) ||
+                (currentTurn == ChessGame.TeamColor.BLACK && !role.equals("black"))) {
+            sendError(ctx, "Not your turn.");
+            return;
+        }
+
+
         try {
             game.makeMove(move);
         } catch (Exception e) {
@@ -78,14 +92,16 @@ public class ChessWebSocketHandler {
             return;
         }
 
-        dataAccess.updateGame(new GameData(
+        GameData updated = new GameData(
                 gameData.gameID(),
                 gameData.whiteUsername(),
                 gameData.blackUsername(),
                 gameData.gameName(),
-                game));
-        broadcastToAll(gameData.gameID(), new LoadGameMessage(gameData));
-        broadcastToOthers(gameData.gameID(), ctx, new NotificationMessage(auth.username() + " moved " + move));
+                game);
+
+        dataAccess.updateGame(updated);
+        broadcastToAll(cmd.getGameID(), new LoadGameMessage(updated));
+        broadcastToOthers(cmd.getGameID(), ctx, new NotificationMessage(auth.username() + " moved " + move));
     }
 
     private void handleConnect(WsMessageContext ctx, UserGameCommand cmd) throws DataAccessException {
@@ -105,18 +121,58 @@ public class ChessWebSocketHandler {
 
     private void handleLeave(WsMessageContext ctx, UserGameCommand cmd) throws DataAccessException {
         AuthData auth = reqAuth(cmd.getAuthToken());
+        GameData gameData = reqGame(cmd.getGameID());
         int gameID = cmd.getGameID();
-
-        if (gameConnections.containsKey(gameID)) {
-            gameConnections.get(gameID).remove(ctx);
+        Map<String, WsMessageContext> group = gameConnections.get(gameID);
+        if (group != null) {
+            group.remove(auth.username());
+            broadcastToOthers(gameID, ctx, new NotificationMessage(auth.username() + " left the game."));
         }
-        broadcastToOthers(gameID, ctx, new NotificationMessage(auth.username() + " left the game."));
+        if (auth.username().equals(gameData.whiteUsername())) {
+            dataAccess.updateGame(new GameData(
+                    gameID,
+                    null,
+                    gameData.blackUsername(),
+                    gameData.gameName(),
+                    gameData.game()
+            ));
+        } else if (auth.username().equals(gameData.blackUsername())) {
+            dataAccess.updateGame(new GameData(
+                    gameID,
+                    gameData.whiteUsername(),
+                    null,
+                    gameData.gameName(),
+                    gameData.game()
+            ));
+        }
     }
 
     private void handleResign(WsMessageContext ctx, UserGameCommand cmd) throws DataAccessException {
         AuthData auth = reqAuth(cmd.getAuthToken());
         GameData gameData = reqGame(cmd.getGameID());
+        ChessGame game = gameData.game();
         int gameID = gameData.gameID();
+
+        if (game.isGameOver()) {
+            sendError(ctx, "Game Already Concluded");
+            return;
+        }
+
+        String role = determineRole(auth.username(), gameData);
+        if (role.equals("observer")) {
+            sendError(ctx, "Only Players may Resign");
+            return;
+        }
+
+        game.setGameOver(true);
+        GameData updated = new GameData(
+                gameData.gameID(),
+                gameData.whiteUsername(),
+                gameData.blackUsername(),
+                gameData.gameName(),
+                game
+        );
+        dataAccess.updateGame(updated);
 
         broadcastToAll(gameID, new NotificationMessage(auth.username() + " resigned. Game Over."));
     }
@@ -136,6 +192,7 @@ public class ChessWebSocketHandler {
     }
 
     private String determineRole(String username, GameData gameData) {
+        if (username == null) { return null; }
         if (username.equals(gameData.whiteUsername()))
             return "white";
         if (username.equals(gameData.blackUsername()))
