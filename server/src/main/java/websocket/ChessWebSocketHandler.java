@@ -21,7 +21,7 @@ public class ChessWebSocketHandler {
     private final Gson gson = new Gson();
     private final DataAccess dataAccess;
 
-    private static final Map<Integer, Set<WsMessageContext>> gameConnections = new ConcurrentHashMap<>();
+    private static final Map<Integer, Map<String, WsMessageContext>> gameConnections = new ConcurrentHashMap<>();
 
     public ChessWebSocketHandler(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
@@ -35,8 +35,8 @@ public class ChessWebSocketHandler {
         });
     }
 
-    private void onClose(WsCloseContext wsCloseContext) {
-        gameConnections.values().forEach(set -> set.remove(wsCloseContext));
+    private void onClose(WsCloseContext ctx) {
+        gameConnections.values().forEach(map -> map.remove(ctx.sessionId()));
     }
 
     private void onMessage(WsMessageContext ctx) {
@@ -66,13 +66,15 @@ public class ChessWebSocketHandler {
         GameData gameData = reqGame(cmd.getGameID());
         int gameID = gameData.gameID();
 
-        gameConnections
-                .computeIfAbsent(gameID, id-> ConcurrentHashMap.newKeySet())
-                .add(ctx);
+        gameConnections.computeIfAbsent(gameID, id -> new ConcurrentHashMap<>())
+                .put(ctx.sessionId(), ctx);
 
         ctx.send(gson.toJson(new LoadGameMessage(gameData.game())));
+
         String role = determineRole(auth.username(), gameData);
-        broadcastToOthers(gameID, ctx, new NotificationMessage(auth.username()) + " joined as " + role);
+        NotificationMessage notif =
+                new NotificationMessage(auth.username() + " joined as " + role);
+        broadcastToOthers(gameID, ctx, notif);
     }
 
 
@@ -97,12 +99,13 @@ public class ChessWebSocketHandler {
     private void broadcastToOthers(int gameID, WsMessageContext sender, ServerMessage message) {
         var clients = gameConnections.get(gameID);
         if (clients == null) return;
+
         String json = gson.toJson(message);
-        clients.stream()
-                .filter(c -> !c.getSessionId().equals(sender.getSessionId()))
+
+        clients.values().stream()
+                .filter(c -> !c.sessionId().equals(sender.sessionId()))
                 .forEach(c -> c.send(json));
     }
-
 
     private void sendError(WsMessageContext ctx, String errorText) {
         if (!errorText.toLowerCase().contains("error")) {
