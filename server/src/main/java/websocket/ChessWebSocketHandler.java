@@ -77,6 +77,24 @@ public class ChessWebSocketHandler {
         broadcastToOthers(gameID, ctx, notif);
     }
 
+    private void handleLeave(WsMessageContext ctx, UserGameCommand cmd) throws DataAccessException {
+        AuthData auth = reqAuth(cmd.getAuthToken());
+        int gameID = cmd.getGameID();
+
+        if (gameConnections.containsKey(gameID)) {
+            gameConnections.get(gameID).remove(ctx);
+        }
+        broadcastToOthers(gameID, ctx, new NotificationMessage(auth.username() + " left the game."));
+    }
+
+    private void handleResign(WsMessageContext ctx, UserGameCommand cmd) throws DataAccessException {
+        AuthData auth = reqAuth(cmd.getAuthToken());
+        GameData gameData = reqGame(cmd.getGameID());
+        int gameID = gameData.gameID();
+
+        broadcastToAll(gameID, new NotificationMessage(auth.username() + " resigned. Game Over."));
+    }
+
 
     private AuthData reqAuth(String authToken) throws DataAccessException {
         AuthData auth = dataAccess.getAuth(authToken);
@@ -105,6 +123,13 @@ public class ChessWebSocketHandler {
         clients.values().stream()
                 .filter(c -> !c.sessionId().equals(sender.sessionId()))
                 .forEach(c -> c.send(json));
+    }
+
+    private void broadcastToAll(int gameID, ServerMessage message) {
+        var clients = gameConnections.get(gameID);
+        if (clients == null) { return; }
+        String json = gson.toJson(message);
+        clients.values().forEach(c -> c.send(json));
     }
 
     private void sendError(WsMessageContext ctx, String errorText) {
