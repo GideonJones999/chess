@@ -21,7 +21,7 @@ public class ChessWebSocketHandler {
     private final Gson gson = new Gson();
     private final DataAccess dataAccess;
 
-    private static final Map<Integer, Map<String, WsMessageContext>> gameConnections = new ConcurrentHashMap<>();
+    private static final Map<Integer, Map<String, WsMessageContext>> GAME_CONNECTIONS = new ConcurrentHashMap<>();
 
     public ChessWebSocketHandler(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
@@ -35,7 +35,7 @@ public class ChessWebSocketHandler {
     }
 
     private void onClose(WsCloseContext ctx) {
-        gameConnections.values().forEach(map -> map.remove(ctx.sessionId()));
+        GAME_CONNECTIONS.values().forEach(map -> map.remove(ctx.sessionId()));
     }
 
     private void onMessage(WsMessageContext ctx) {
@@ -109,7 +109,7 @@ public class ChessWebSocketHandler {
         GameData gameData = reqGame(cmd.getGameID());
         int gameID = gameData.gameID();
 
-        gameConnections.computeIfAbsent(gameID, id -> new ConcurrentHashMap<>())
+        GAME_CONNECTIONS.computeIfAbsent(gameID, id -> new ConcurrentHashMap<>())
                 .put(ctx.sessionId(), ctx);
 
         ctx.send(gson.toJson(new LoadGameMessage(gameData)));
@@ -125,7 +125,7 @@ public class ChessWebSocketHandler {
         String username = auth.username();
         int gameID = cmd.getGameID();
 
-        Map<String, WsMessageContext> group = gameConnections.get(gameID);
+        Map<String, WsMessageContext> group = GAME_CONNECTIONS.get(gameID);
         if (group == null) {
             System.out.println("No Group");
             return;
@@ -202,31 +202,36 @@ public class ChessWebSocketHandler {
 
     private AuthData reqAuth(String authToken) throws DataAccessException {
         AuthData auth = dataAccess.getAuth(authToken);
-        if (auth == null)
+        if (auth == null) {
             throw new DataAccessException("Invalid Auth Token");
+        }
         return auth;
     }
 
     private GameData reqGame(int gameID) throws DataAccessException {
         GameData game = dataAccess.getGame(gameID);
-        if (game == null)
+        if (game == null) {
             throw new DataAccessException("Game not Found");
+        }
         return game;
     }
 
     private String determineRole(String username, GameData gameData) {
         if (username == null) { return null; }
-        if (username.equals(gameData.whiteUsername()))
+        if (username.equals(gameData.whiteUsername())) {
             return "white";
-        if (username.equals(gameData.blackUsername()))
+        }
+        if (username.equals(gameData.blackUsername())) {
             return "black";
+        }
         return "observer";
     }
 
     private void broadcastToOthers(int gameID, WsMessageContext sender, ServerMessage message) {
-        var clients = gameConnections.get(gameID);
-        if (clients == null)
+        var clients = GAME_CONNECTIONS.get(gameID);
+        if (clients == null) {
             return;
+        }
 
         String json = gson.toJson(message);
 
@@ -236,7 +241,7 @@ public class ChessWebSocketHandler {
     }
 
     private void broadcastToAll(int gameID, ServerMessage message) {
-        var clients = gameConnections.get(gameID);
+        var clients = GAME_CONNECTIONS.get(gameID);
         if (clients == null) {
             return;
         }
